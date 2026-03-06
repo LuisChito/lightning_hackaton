@@ -1,6 +1,10 @@
-import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
-import { AppBar, Box, Button, Chip, Container, IconButton, Stack, Toolbar, Typography } from '@mui/material'
+import GitHubIcon from '@mui/icons-material/GitHub'
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded'
+import { AppBar, Box, Button, Chip, Container, IconButton, Menu, MenuItem, Stack, Toolbar, Typography } from '@mui/material'
+import { useState } from 'react'
+import type { MouseEvent } from 'react'
 import { NavLink } from 'react-router-dom'
+
 
 const navButtonSx = {
 	textTransform: 'none',
@@ -11,6 +15,16 @@ const navButtonSx = {
 }
 
 function Header() {
+	const [repoMenuAnchor, setRepoMenuAnchor] = useState<null | HTMLElement>(null)
+
+	const openRepoMenu = (event: MouseEvent<HTMLElement>) => {
+		setRepoMenuAnchor(event.currentTarget)
+	}
+
+	const closeRepoMenu = () => {
+		setRepoMenuAnchor(null)
+	}
+
 	return (
 		<AppBar position="static" elevation={0} color="transparent" className="header-bar">
 			<Container maxWidth="lg">
@@ -59,9 +73,33 @@ function Header() {
 						<Button component={NavLink} to="/pagos" color="inherit" sx={navButtonSx}>
 							Pagos
 						</Button>
-						<IconButton color="inherit" className="menu-button" aria-label="menu">
-							<MenuRoundedIcon />
+						<IconButton color="inherit" aria-label="repositorios" onClick={openRepoMenu}>
+							<GitHubIcon />
 						</IconButton>
+						<Menu
+							anchorEl={repoMenuAnchor}
+							open={Boolean(repoMenuAnchor)}
+							onClose={closeRepoMenu}
+							PaperProps={{
+								sx: {
+									border: '1px solid rgba(128, 165, 235, 0.25)',
+									backgroundColor: '#0d162b',
+								},
+							}}
+						>
+							<MenuItem component="a" href={'https://github.com/LuisChito/client-lightning-quest'} target="_blank" rel="noopener noreferrer" onClick={closeRepoMenu}>
+								<Stack direction="row" spacing={1.2} alignItems="center">
+									<Typography variant="body2">Frontend</Typography>
+									<OpenInNewRoundedIcon fontSize="small" />
+								</Stack>
+							</MenuItem>
+							<MenuItem component="a" href={'https://github.com/LuisChito/client-lightning-quest'} target="_blank" rel="noopener noreferrer" onClick={closeRepoMenu}>
+								<Stack direction="row" spacing={1.2} alignItems="center">
+									<Typography variant="body2">Backend</Typography>
+									<OpenInNewRoundedIcon fontSize="small" />
+								</Stack>
+							</MenuItem>
+						</Menu>
 					</Stack>
 				</Toolbar>
 			</Container>
