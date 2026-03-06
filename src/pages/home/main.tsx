@@ -12,19 +12,13 @@ function HomePage() {
           background: 'linear-gradient(135deg, rgba(18, 32, 60, 0.92), rgba(8, 15, 30, 0.96))',
         }}
       >
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1.5 }}>
-          Lightning Network Canvas
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Aqui ira el canvas principal de la red Lightning. Por ahora queda reservado como apartado base de la ruta raiz.
-        </Typography>
         <Box
           sx={{
             mt: 3,
             height: { xs: 280, md: 420 },
             borderRadius: 2,
-            border: '1px dashed rgba(128, 165, 235, 0.35)',
-            backgroundColor: 'rgba(53, 87, 147, 0.14)',
+            border: '1px dashed rgba(88, 120, 185, 0.28)',
+            backgroundColor: 'rgba(9, 18, 36, 0.9)',
             display: 'grid',
             placeItems: 'center',
           }}
