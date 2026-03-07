@@ -127,7 +127,11 @@ function MapCanvasInner() {
 	const [firstNodeId, setFirstNodeId] = useState<string | null>(null)
 	const {
 		showLevel3ReachedModal,
+		showSelectDestinationModal,
+		showInvoiceExplanationModal,
 		startFlow: startMission3ModalFlow,
+		continueToSelectDestination,
+		onDestinationSelected,
 		closeAll: closeMission3ModalFlow,
 	} = useMission3Store()
 	
@@ -142,6 +146,7 @@ function MapCanvasInner() {
 	const isCanvasLockedByModal =
 		showChannelEducation ||
 		showLevel3ReachedModal ||
+		showInvoiceExplanationModal ||
 		showChannelModal
 
 	// Reproducir sonido cuando sube el XP
@@ -275,6 +280,18 @@ const handleChannelConfirm = useCallback(
 			}
 
 			setSelectedNode(node)
+
+			if (showSelectDestinationModal) {
+				const isPlaceholder = Boolean(node?.data?.isPlaceholder)
+				if (isPlaceholder) {
+					return
+				}
+
+				const isDestinationNode = edges.some((edge) => edge.target === node.id)
+				if (isDestinationNode) {
+					onDestinationSelected()
+				}
+			}
 			
 			// Ocultar hint si se hace click en el primer nodo creado
 			if (showNodeClickHint && node.id === firstNodeId) {
@@ -285,7 +302,7 @@ const handleChannelConfirm = useCallback(
 				}, 'mission2')
 			}
 		},
-		[setSelectedNode, showNodeClickHint, firstNodeId, isCanvasLockedByModal],
+		[setSelectedNode, showNodeClickHint, firstNodeId, isCanvasLockedByModal, showSelectDestinationModal, edges, onDestinationSelected],
 	)
 
 	const onPaneClick = useCallback(
@@ -1036,7 +1053,10 @@ const handleChannelConfirm = useCallback(
 
 			<Mission3LevelModals
 				showLevel3ReachedModal={showLevel3ReachedModal}
-				onCloseLevel3Modal={closeMission3ModalFlow}
+				showSelectDestinationModal={showSelectDestinationModal}
+				showInvoiceExplanationModal={showInvoiceExplanationModal}
+				onContinueToSelectDestination={continueToSelectDestination}
+				onCloseInvoiceExplanationModal={closeMission3ModalFlow}
 			/>
 
 			{/* Bloquea interacción del canvas mientras haya modales abiertos */}
