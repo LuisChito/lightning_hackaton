@@ -63,7 +63,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     set((state) => {
       const totalXP = state.xp + amount
       const missionAdvance = Math.floor(totalXP / 100)
-      const newXP = totalXP % 100
+      const newXP = totalXP
       const newMissionCounter = state.missionCounter + missionAdvance
       const newLevel = newMissionCounter + 1
       const nextMission = state.missions[newMissionCounter] || null

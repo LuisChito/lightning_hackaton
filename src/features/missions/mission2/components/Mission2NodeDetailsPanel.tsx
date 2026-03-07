@@ -1,9 +1,10 @@
-import { Box, Divider, Stack, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Chip } from '@mui/material'
+import { Box, Divider, Stack, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Chip, Tabs, Tab } from '@mui/material'
 import { border, background, lightning, text } from '../../../../theme/colors'
 import type { Node } from '@xyflow/react'
 import { useState, useEffect, useRef } from 'react'
 import { useReactFlow } from '@xyflow/react'
 import { useMissionStore } from '../../shared/store/useMissionStore'
+import InvoiceTab from '../../../../components/invoices/InvoiceTab'
 
 interface NodeDetailsPanelProps {
   node: Node | null
@@ -12,7 +13,7 @@ interface NodeDetailsPanelProps {
 function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
   // ALWAYS call all hooks first (Rules of Hooks)
   const { setNodes } = useReactFlow()
-  const { addXP, missionCounter, xp } = useMissionStore()
+  //const { addXP, missionCounter, xp } = useMissionStore()
   const [nombre, setNombre] = useState('')
   const [balance, setBalance] = useState(0)
   const [estado, setEstado] = useState<'activo' | 'inactivo'>('activo')
@@ -26,6 +27,11 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
   // Extract node data (safe to access with optional chaining)
   const nodeLabel = (node?.data?.label as string) || 'Unknown'
   const isPlaceholder = node?.data?.isPlaceholder as boolean | undefined
+
+  const { addXP, missionCounter, xp, completedMissions } = useMissionStore()
+
+  const mission2Completed = completedMissions.includes('create-destination-and-channel')
+  const [activeTab, setActiveTab] = useState(mission2Completed ? 1 : 0)
 
   // Initialize values when node changes
   useEffect(() => {
@@ -53,6 +59,12 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
       initialBalanceRef.current = initialBalance
     }
   }, [node?.id, nodeLabel, isPlaceholder])
+
+  useEffect(() => {
+    if (completedMissions.includes('create-destination-and-channel')) {
+      setActiveTab(1)
+    }
+  }, [completedMissions])
 
   // Early returns AFTER all hooks
   if (!node || isPlaceholder) {
@@ -173,13 +185,20 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
       )}
 
       <Box>
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.25 }}>
-          Detalles del Nodo
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          ID: {node.id}
-        </Typography>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.25 }}>Detalles del Nodo</Typography>
+        <Typography variant="caption" color="text.secondary">ID: {node.id}</Typography>
+        <Tabs
+          value={activeTab}
+          onChange={(_, v) => setActiveTab(v)}
+          sx={{ mt: 1, minHeight: 32, '& .MuiTab-root': { minHeight: 32, py: 0, fontSize: '0.8rem' } }}
+        >
+          <Tab label="Info" />
+          {mission2Completed && <Tab label="Pagos" />}
+        </Tabs>
       </Box>
+
+      {activeTab === 0 && (
+      <>
 
       <Divider sx={{ borderColor: border.divider }} />
 
@@ -344,6 +363,10 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
           </Typography>
         </Stack>
       </Stack>
+        </>
+    )}
+
+    {activeTab === 1 && mission2Completed && <InvoiceTab />}
     </Box>
   )
 }

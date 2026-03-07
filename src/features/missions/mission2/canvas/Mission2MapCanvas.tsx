@@ -133,10 +133,9 @@ function MapCanvasInner() {
 			nodes,
 			edges,
 			hasCreatedNode,
-			xp,
 			completedMissions,
 		}, 'mission2')
-	}, [nodes, edges, hasCreatedNode, xp, completedMissions])
+	}, [nodes, edges, hasCreatedNode, completedMissions])
 
 	const onConnect = useCallback(
 		(connection: Connection) => {
@@ -171,32 +170,43 @@ function MapCanvasInner() {
 )
 
 const handleChannelConfirm = useCallback(
-	(channelSats: number) => {
-		if (!pendingConnection) return
+  (channelSats: number) => {
+    if (!pendingConnection) return
 
-		setEdges((currentEdges) => {
-			const channelNumber = getNextChannelNumber(currentEdges)
+    setEdges((currentEdges) => {
+      const channelNumber = getNextChannelNumber(currentEdges)
+      return addEdge(
+        {
+          ...pendingConnection,
+          id: `channel-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          type: 'channelEdge',
+          data: { label: `canal${channelNumber}`, sats: channelSats },
+        },
+        currentEdges,
+      )
+    })
 
-			return addEdge(
-				{
-					...pendingConnection,
-					id: `channel-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-					type: 'channelEdge',
-					data: { label: `canal${channelNumber}`, sats: channelSats },
-				},
-				currentEdges,
-			)
-		})
+    if (currentMission?.id === 'create-destination-and-channel') {
+      completeMission('create-destination-and-channel')
 
-		if (currentMission?.id === 'create-destination-and-channel') {
-			completeMission('create-destination-and-channel')
-		}
-		
-		// Limpiar estados
-		setPendingConnection(null)
-		setModalSourceNode(null)
-	},
-	[pendingConnection, setEdges, currentMission, completeMission],
+      // Notificación visual de XP
+      setEarnedXP(75)
+      setXPPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
+      setShowXPNotification(true)
+
+      // Sonidos
+      playMissionComplete()
+      setTimeout(() => playXPGained(), 200)
+
+      // Ocultar notificación después de 2 segundos
+      setTimeout(() => setShowXPNotification(false), 4400)
+    }
+    
+    // Limpiar estados
+    setPendingConnection(null)
+    setModalSourceNode(null)
+  },
+  [pendingConnection, setEdges, currentMission, completeMission, playMissionComplete, playXPGained],
 )
 
 	const onNodeClick = useCallback(

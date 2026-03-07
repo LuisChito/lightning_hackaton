@@ -247,10 +247,9 @@ function MapCanvasInner() {
 			nodes,
 			edges,
 			hasCreatedNode,
-			xp,
 			completedMissions,
 		}, 'mission1')
-	}, [nodes, edges, hasCreatedNode, xp, completedMissions])
+	}, [nodes, edges, hasCreatedNode, completedMissions])
 
 	const onConnect = useCallback(
 		(connection: Connection) => {
