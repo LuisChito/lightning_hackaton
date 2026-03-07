@@ -16,13 +16,13 @@ import {
 } from '@xyflow/react'
 import { useCallback, useState, useEffect } from 'react'
 import '@xyflow/react/dist/style.css'
-import { background, border, lightning, canvas } from '../../theme/colors'
-import ChannelEdge from './ChannelEdge'
-import NodeItem from './NodeItem'
-import { loadGameProgress, saveGameProgress } from '../../utils/gameProgress'
-import { useNetworkStore } from '../../store/useNetworkStore'
-import { useMissionStore } from '../../store/useMissionStore'
-import { useGameSounds } from '../../hooks/useGameSounds'
+import { background, border, lightning, canvas } from '../../../../theme/colors'
+import ChannelEdge from './Mission1ChannelEdge'
+import NodeItem from './Mission1NodeItem'
+import { loadGameProgress, saveGameProgress } from '../../shared/services/missionProgress.service'
+import { useNetworkStore } from '../store/useNetworkStore'
+import { useMissionStore } from '../../shared/store/useMissionStore'
+import { useGameSounds } from '../../../../hooks/useGameSounds'
 
 const nodeTypes: NodeTypes = {
 	networkNode: NodeItem,

@@ -2,7 +2,7 @@ import { Box, Button, Stack, Modal, TextField, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { background, lightning, text, border } from '../../theme/colors'
-import { loadGameProgress } from '../../utils/gameProgress'
+import { loadGameProgress } from '../../features/missions/shared/services/missionProgress.service'
 import { useGameSounds } from '../../hooks/useGameSounds'
 
 function WelcomePage() {

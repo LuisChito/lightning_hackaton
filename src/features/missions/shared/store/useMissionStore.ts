@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { saveGameProgress } from '../utils/gameProgress'
+import { saveGameProgress } from '../services/missionProgress.service'
 
 export interface Mission {
   id: string

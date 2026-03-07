@@ -1,13 +1,10 @@
-import AddRoundedIcon from '@mui/icons-material/AddRounded'
-import CollectionsBookmarkRoundedIcon from '@mui/icons-material/CollectionsBookmarkRounded'
-import ImageRoundedIcon from '@mui/icons-material/ImageRounded'
 import PersonIcon from '@mui/icons-material/Person'
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
-import { Box, Button, Stack, Typography, Chip, Divider } from '@mui/material'
+import { Box, Stack, Typography, Chip, Divider } from '@mui/material'
 import { border, background, lightning } from '../../../../theme/colors'
 import { useState, useEffect } from 'react'
-import { useMissionStore } from '../../../../store/useMissionStore'
-import { loadGameProgress } from '../../../../utils/gameProgress'
+import { useMissionStore } from '../../../../features/missions/shared/store/useMissionStore'
+import { loadGameProgress } from '../../../../features/missions/shared/services/missionProgress.service'
 
 function AppTopBar() {
   const [playerName, setPlayerName] = useState('')

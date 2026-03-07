@@ -1,7 +1,7 @@
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded'
 import { Box, Typography } from '@mui/material'
 import { Handle, Position } from '@xyflow/react'
-import { lightning, border, background, text, purple } from '../../theme/colors'
+import { lightning, border, background, text, purple } from '../../../../theme/colors'
 
 type NodeItemData = {
 	label?: string

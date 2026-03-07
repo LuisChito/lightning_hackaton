@@ -3,7 +3,7 @@ import { border, background, lightning, text } from '../../../../theme/colors'
 import type { Node } from '@xyflow/react'
 import { useState, useEffect, useRef } from 'react'
 import { useReactFlow } from '@xyflow/react'
-import { useMissionStore } from '../../../../store/useMissionStore'
+import { useMissionStore } from '../../shared/store/useMissionStore'
 
 interface NodeDetailsPanelProps {
   node: Node | null
@@ -70,11 +70,9 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
           const newData = {
             ...n.data,
             ...updates,
+            ...(updates.nombre !== undefined ? { label: updates.nombre } : {}),
           }
-          // Actualizar label si cambia el nombre
-          if (updates.nombre !== undefined) {
-            newData.label = updates.nombre
-          }
+
           return {
             ...n,
             data: newData,
