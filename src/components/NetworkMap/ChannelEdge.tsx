@@ -1,4 +1,5 @@
 import { BaseEdge, EdgeLabelRenderer, type EdgeProps, getBezierPath } from '@xyflow/react'
+import { lightning, background, text } from '../../theme/colors'
 
 function ChannelEdge(props: EdgeProps) {
 	const [edgePath, labelX, labelY] = getBezierPath({
@@ -12,18 +13,19 @@ function ChannelEdge(props: EdgeProps) {
 
 	return (
 		<>
-			<BaseEdge path={edgePath} style={{ stroke: '#f0b429', strokeWidth: 2.2 }} />
+			<BaseEdge path={edgePath} style={{ stroke: lightning.primary, strokeWidth: 2.2 }} />
 			<EdgeLabelRenderer>
 				<div
 					style={{
 						position: 'absolute',
 						transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
 						fontSize: 10,
-						color: '#f7cd64',
-						background: 'rgba(10, 15, 26, 0.9)',
+						fontWeight: 600,
+						color: lightning.dark,
+						background: background.panel,
 						padding: '2px 6px',
 						borderRadius: 8,
-						border: '1px solid rgba(240, 180, 41, 0.35)',
+						border: `1px solid ${lightning.border}`,
 						pointerEvents: 'none',
 					}}
 				>

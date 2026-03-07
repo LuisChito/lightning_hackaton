@@ -1,11 +1,14 @@
 import { Box } from '@mui/material'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import Header from './components/header'
 
 function MainLayout() {
+  const location = useLocation()
+  const isWelcomePage = location.pathname === '/'
+
   return (
     <Box className="app-shell">
-      <Header />
+      {!isWelcomePage && <Header />}
       <Box component="main" className="page-content">
         <Outlet />
       </Box>

@@ -5,14 +5,15 @@
 .app-shell {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 8% 0%, rgba(47, 95, 168, 0.3), transparent 32%),
-    radial-gradient(circle at 90% 120%, rgba(86, 130, 205, 0.2), transparent 38%),
-    #050914;
+    radial-gradient(circle at 15% 10%, var(--color-primary-light), transparent 35%),
+    radial-gradient(circle at 85% 90%, rgba(245, 158, 11, 0.12), transparent 40%),
+    var(--color-bg-primary);
 }
 
 .header-bar {
-  border-bottom: 1px solid rgba(128, 165, 235, 0.2);
-  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--color-border-subtle);
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.8);
 }
 
 .header-toolbar {

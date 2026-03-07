@@ -1,6 +1,36 @@
+:root {
+  /* Backgrounds - Claros */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-dark: #f1f5f9;
+  
+  /* Text - Oscuros */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-light: #64748b;
+  
+  /* Borders - Sutiles */
+  --color-border-primary: rgba(148, 163, 184, 0.25);
+  --color-border-light: rgba(203, 213, 225, 0.5);
+  --color-border-subtle: rgba(203, 213, 225, 0.4);
+  
+  /* Lightning - Vibrante */
+  --color-lightning: #f59e0b;
+  --color-lightning-light: #fbbf24;
+  
+  /* Primary - Azul moderno */
+  --color-primary: #3b82f6;
+  --color-primary-light: rgba(59, 130, 246, 0.15);
+  --color-primary-lighter: rgba(147, 197, 253, 0.25);
+  
+  /* Status */
+  --color-success: #10b981;
+  --color-error: #ef4444;
+}
+
 body {
   margin: 0;
   min-width: 320px;
-  background-color: #050914;
-  color: #e8efff;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
 }

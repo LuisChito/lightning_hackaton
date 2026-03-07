@@ -1,4 +1,5 @@
 import { Box, Divider, Stack, Typography } from '@mui/material'
+import { border, background } from '../../../../theme/colors'
 
 const rows = [
   ['Node Type', 'lightning'],
@@ -18,8 +19,8 @@ function NodeDetailsPanel() {
         minHeight: { xs: 180, lg: 0 },
         p: 2,
         borderRadius: 1.5,
-        border: '1px solid rgba(128, 165, 235, 0.2)',
-        backgroundColor: 'rgba(10, 16, 30, 0.94)',
+        border: `1px solid ${border.subtle}`,
+        backgroundColor: background.panelLight,
         overflow: 'auto',
       }}
     >
@@ -30,7 +31,7 @@ function NodeDetailsPanel() {
         1.5M sats
       </Typography>
 
-      <Divider sx={{ my: 1.5, borderColor: 'rgba(128, 165, 235, 0.14)' }} />
+      <Divider sx={{ my: 1.5, borderColor: border.divider }} />
 
       <Stack spacing={1.1}>
         {rows.map(([label, value]) => (

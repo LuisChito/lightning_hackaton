@@ -1,9 +1,11 @@
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded'
 import { Box, Typography } from '@mui/material'
 import { Handle, Position } from '@xyflow/react'
+import { lightning, border, background, text, purple } from '../../theme/colors'
 
 type NodeItemData = {
 	label?: string
+	isPlaceholder?: boolean
 }
 
 type NodeItemProps = {
@@ -17,17 +19,19 @@ function NodeItem({ data, selected }: NodeItemProps) {
 			sx={{
 				minWidth: 152,
 				borderRadius: 1.5,
-				border: selected ? '1px solid rgba(240, 180, 41, 0.9)' : '1px solid rgba(128, 165, 235, 0.35)',
-				backgroundColor: 'rgba(24, 30, 42, 0.96)',
+				border: selected ? `1px solid ${lightning.borderStrong}` : `1px solid ${border.strong}`,
+				backgroundColor: background.card,
 				px: 1.25,
 				py: 0.9,
 				display: 'flex',
 				alignItems: 'center',
 				justifyContent: 'space-between',
 				gap: 1,
+				opacity: data?.isPlaceholder ? 0.3 : 1,
+				pointerEvents: data?.isPlaceholder ? 'none' : 'auto',
 			}}
 		>
-			<Typography variant="body2" sx={{ fontWeight: 700, color: '#e3ecff' }}>
+			<Typography variant="body2" sx={{ fontWeight: 700, color: text.primary }}>
 				{data?.label ?? 'node'}
 			</Typography>
 
@@ -38,14 +42,14 @@ function NodeItem({ data, selected }: NodeItemProps) {
 					borderRadius: '50%',
 					display: 'grid',
 					placeItems: 'center',
-					backgroundColor: 'rgba(95, 52, 154, 0.82)',
+					backgroundColor: purple.main,
 				}}
 			>
-				<BoltRoundedIcon sx={{ fontSize: 12, color: '#f5e7ff' }} />
+				<BoltRoundedIcon sx={{ fontSize: 12, color: '#ffffff' }} />
 			</Box>
 
-			<Handle type="target" position={Position.Left} style={{ background: '#f0b429', width: 8, height: 8 }} />
-			<Handle type="source" position={Position.Right} style={{ background: '#f0b429', width: 8, height: 8 }} />
+			<Handle type="target" position={Position.Left} style={{ background: lightning.primary, width: 8, height: 8 }} />
+			<Handle type="source" position={Position.Right} style={{ background: lightning.primary, width: 8, height: 8 }} />
 		</Box>
 	)
 }

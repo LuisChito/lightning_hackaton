@@ -4,13 +4,15 @@ import { AppBar, Box, Button, Chip, Container, IconButton, Menu, MenuItem, Stack
 import { useState } from 'react'
 import type { MouseEvent } from 'react'
 import { NavLink } from 'react-router-dom'
+import { lightning, background, border } from '../../../theme/colors'
 
 
 const navButtonSx = {
 	textTransform: 'none',
 	'&.active': {
-		color: '#f7cd64',
-		backgroundColor: 'rgba(240, 180, 41, 0.12)',
+		color: lightning.dark,
+		backgroundColor: lightning.background,
+		fontWeight: 600,
 	},
 }
 
@@ -44,7 +46,7 @@ function Header() {
 							<Box
 								component="img"
 								src="/isotipo.png"
-								alt="Lightning Quest logo"
+							alt="Lightning Game logo"
 								sx={{ width: 24, height: 24, objectFit: 'contain' }}
 							/>
 							<Typography variant="h6" component="h1" sx={{ fontWeight: 700, letterSpacing: 0.3 }}>
@@ -55,17 +57,16 @@ function Header() {
 							size="small"
 							label="Testnet"
 							sx={{
-								borderColor: 'rgba(240, 180, 41, 0.45)',
-								color: '#f7cd64',
-								backgroundColor: 'rgba(240, 180, 41, 0.09)',
-							}}
-							variant="outlined"
-						/>
-					</Stack>
-
-					<Stack direction="row" spacing={1} alignItems="center">
-						<Button component={NavLink} to="/nodos" color="inherit" sx={navButtonSx}>
-							Nodos
+							borderColor: lightning.borderMedium,
+							color: lightning.dark,
+							backgroundColor: lightning.backgroundLight,
+							fontWeight: 600,
+						}}
+						variant="outlined"
+					/>
+				</Stack>
+						<Button component={NavLink} to="/game" color="inherit" sx={navButtonSx}>
+							Juego
 						</Button>
 						<Button component={NavLink} to="/canales" color="inherit" sx={navButtonSx}>
 							Canales
@@ -82,8 +83,8 @@ function Header() {
 							onClose={closeRepoMenu}
 							PaperProps={{
 								sx: {
-									border: '1px solid rgba(128, 165, 235, 0.25)',
-									backgroundColor: '#0d162b',
+									border: `1px solid ${border.medium}`,
+									backgroundColor: background.secondary,
 								},
 							}}
 						>
@@ -100,7 +101,6 @@ function Header() {
 								</Stack>
 							</MenuItem>
 						</Menu>
-					</Stack>
 				</Toolbar>
 			</Container>
 		</AppBar>

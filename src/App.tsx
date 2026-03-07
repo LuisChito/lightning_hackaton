@@ -1,21 +1,22 @@
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
 import { RouterProvider } from 'react-router-dom'
 import { router } from './application/routes/routers'
+import { background, primary, text } from './theme/colors'
 import './App.css'
 
 const theme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'light',
     background: {
-      default: '#050914',
-      paper: '#0d162b',
+      default: background.primary,
+      paper: background.secondary,
     },
     primary: {
-      main: '#2f5fa8',
+      main: primary.main,
     },
     text: {
-      primary: '#e8efff',
-      secondary: '#b8c7e7',
+      primary: text.primary,
+      secondary: text.secondary,
     },
   },
   typography: {

@@ -1,4 +1,5 @@
 import { Box, Container, Paper, Typography } from '@mui/material'
+import { border, background } from '../../theme/colors'
 
 function PagosPage() {
   return (
@@ -8,8 +9,8 @@ function PagosPage() {
         sx={{
           p: { xs: 2.5, md: 4 },
           borderRadius: 2,
-          border: '1px solid rgba(128, 165, 235, 0.22)',
-          background: 'linear-gradient(135deg, rgba(18, 32, 60, 0.92), rgba(8, 15, 30, 0.96))',
+          border: `1px solid ${border.primary}`,
+          background: `linear-gradient(135deg, ${background.gradient3}, ${background.gradient4})`,
         }}
       >
         <Typography variant="h4" sx={{ fontWeight: 700, mb: 1.5 }}>
@@ -18,7 +19,7 @@ function PagosPage() {
         <Typography variant="body1" color="text.secondary">
           Envio y trazabilidad de pagos Lightning dentro de la simulacion.
         </Typography>
-        <Box sx={{ mt: 3, height: 220, borderRadius: 2, backgroundColor: 'rgba(53, 87, 147, 0.2)' }} />
+        <Box sx={{ mt: 3, height: 220, borderRadius: 2, backgroundColor: background.overlay }} />
       </Paper>
     </Container>
   )
