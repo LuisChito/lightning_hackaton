@@ -22,7 +22,7 @@ function HomePage() {
   const [playerName, setPlayerName] = useState('')
   const { selectedNode } = useNetworkStore()
   const { loadProgress } = useMissionStore()
-  const { playClick, playModalClose, playSpaceEffect, playBubblePop } = useGameSounds()
+  const { playModalClose, playSpaceEffect, playBubblePop } = useGameSounds()
 
   useEffect(() => {
     const name = localStorage.getItem('playerName')
