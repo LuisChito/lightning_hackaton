@@ -11,6 +11,7 @@ import NodeSessionBar from './components/NodeSessionBar/main'
 import LightningNetworkAnimation from '../../components/LightningNetworkAnimation'
 import { loadGameProgress, saveGameProgress } from '../../utils/gameProgress'
 import { useNetworkStore } from '../../store/useNetworkStore'
+import { useGameSounds } from '../../hooks/useGameSounds'
 
 function HomePage() {
   const [openWelcomeModal, setOpenWelcomeModal] = useState(false)
@@ -18,6 +19,7 @@ function HomePage() {
   const [openThirdModal, setOpenThirdModal] = useState(false)
   const [playerName, setPlayerName] = useState('')
   const { selectedNode } = useNetworkStore()
+  const { playClick, playModalClose, playSpaceEffect, playBubblePop } = useGameSounds()
 
   useEffect(() => {
     const name = localStorage.getItem('playerName')
@@ -31,15 +33,17 @@ function HomePage() {
         console.log('Modales ya completados, cargando progreso...')
       } else {
         // Mostrar modales de bienvenida
+        playBubblePop()
         setOpenWelcomeModal(true)
       }
     }
-  }, [])
+  }, [playBubblePop])
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.code === 'Space') {
         event.preventDefault()
+        playSpaceEffect()
         if (openWelcomeModal) {
           handleCloseWelcomeModal()
         } else if (openSecondModal) {
@@ -54,23 +58,28 @@ function HomePage() {
     return () => {
       window.removeEventListener('keydown', handleKeyPress)
     }
-  }, [openWelcomeModal, openSecondModal, openThirdModal])
+  }, [openWelcomeModal, openSecondModal, openThirdModal, playSpaceEffect])
 
   const handleCloseWelcomeModal = () => {
+    playModalClose()
     setOpenWelcomeModal(false)
     setTimeout(() => {
+      playBubblePop()
       setOpenSecondModal(true)
     }, 300)
   }
 
   const handleCloseSecondModal = () => {
+    playModalClose()
     setOpenSecondModal(false)
     setTimeout(() => {
+      playBubblePop()
       setOpenThirdModal(true)
     }, 300)
   }
 
   const handleCloseThirdModal = () => {
+    playModalClose()
     setOpenThirdModal(false)
     // Guardar que los modales fueron completados
     saveGameProgress({

@@ -7,6 +7,8 @@ import type { MouseEvent } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { lightning, background, border } from '../../../theme/colors'
 import { resetGameProgress } from '../../../utils/gameProgress'
+import { useGameSounds } from '../../../hooks/useGameSounds'
+import { useEffect } from 'react'
 
 
 const navButtonSx = {
@@ -22,6 +24,22 @@ function Header() {
 	const [repoMenuAnchor, setRepoMenuAnchor] = useState<null | HTMLElement>(null)
 	const [openResetDialog, setOpenResetDialog] = useState(false)
 	const navigate = useNavigate()
+	const { playModalClose, playClick, playSpaceEffect, playBubblePop } = useGameSounds()
+
+	// Listener para tecla Espacio cuando el modal está abierto
+	useEffect(() => {
+		if (!openResetDialog) return
+
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.code === 'Space') {
+				event.preventDefault()
+				playSpaceEffect()
+			}
+		}
+
+		document.addEventListener('keydown', handleKeyDown)
+		return () => document.removeEventListener('keydown', handleKeyDown)
+	}, [openResetDialog, playSpaceEffect])
 
 	const openRepoMenu = (event: MouseEvent<HTMLElement>) => {
 		setRepoMenuAnchor(event.currentTarget)
@@ -32,14 +50,17 @@ function Header() {
 	}
 
 	const handleOpenResetDialog = () => {
+		playBubblePop()
 		setOpenResetDialog(true)
 	}
 
 	const handleCloseResetDialog = () => {
+		playModalClose()
 		setOpenResetDialog(false)
 	}
 
 	const handleConfirmReset = () => {
+		playClick()
 		resetGameProgress()
 		setOpenResetDialog(false)
 		navigate('/')
@@ -72,13 +93,13 @@ function Header() {
 							</Typography>
 						</Box>
 				</Stack>
-						<Button component={NavLink} to="/game" color="inherit" sx={navButtonSx}>
-							Juego
-						</Button>
-						<Button component={NavLink} to="/canales" color="inherit" sx={navButtonSx}>
-							Canales
-						</Button>
-						<Button component={NavLink} to="/pagos" color="inherit" sx={navButtonSx}>
+					<Button component={NavLink} to="/game" color="inherit" sx={navButtonSx} onClick={playClick}>
+						Juego
+					</Button>
+					<Button component={NavLink} to="/canales" color="inherit" sx={navButtonSx} onClick={playClick}>
+						Canales
+					</Button>
+					<Button component={NavLink} to="/pagos" color="inherit" sx={navButtonSx} onClick={playClick}>
 							Pagos
 						</Button>					<Button
 						color="inherit"

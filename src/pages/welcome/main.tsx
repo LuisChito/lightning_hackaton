@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { background, lightning, text, border } from '../../theme/colors'
 import { loadGameProgress } from '../../utils/gameProgress'
+import { useGameSounds } from '../../hooks/useGameSounds'
 
 function WelcomePage() {
   const navigate = useNavigate()
   const [openModal, setOpenModal] = useState(false)
   const [playerName, setPlayerName] = useState('')
   const [hasSavedSession, setHasSavedSession] = useState(false)
+  const { playClick, playModalClose, playBubblePop } = useGameSounds()
 
   useEffect(() => {
     const savedName = localStorage.getItem('playerName')?.trim() || ''
@@ -22,20 +24,24 @@ function WelcomePage() {
   }, [])
 
   const handleOpenModal = () => {
+    playClick()
     if (hasSavedSession) {
       navigate('/game')
       return
     }
 
+    playBubblePop()
     setOpenModal(true)
   }
 
   const handleCloseModal = () => {
+    playModalClose()
     setOpenModal(false)
   }
 
   const handleStartGame = () => {
     if (playerName.trim()) {
+      playClick()
       // Aquí puedes guardar el nombre en un estado global o localStorage
       localStorage.setItem('playerName', playerName.trim())
       navigate('/game')

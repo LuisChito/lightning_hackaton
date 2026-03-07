@@ -6,16 +6,23 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
 import { Box, Button, Stack, Typography, Chip, Divider } from '@mui/material'
 import { border, background, lightning } from '../../../../theme/colors'
 import { useState, useEffect } from 'react'
+import { useMissionStore } from '../../../../store/useMissionStore'
+import { loadGameProgress } from '../../../../utils/gameProgress'
 
 function AppTopBar() {
   const [playerName, setPlayerName] = useState('')
-  const [xp] = useState(0)
-  const [currentMission] = useState('Misión 1: Primer Pago')
+  const { xp, currentMission, loadProgress } = useMissionStore()
 
   useEffect(() => {
     const name = localStorage.getItem('playerName')
     if (name) {
       setPlayerName(name)
+    }
+    
+    // Cargar progreso de misiones
+    const savedProgress = loadGameProgress()
+    if (savedProgress) {
+      loadProgress(savedProgress.xp || 0, savedProgress.completedMissions || [])
     }
   }, [])
 
@@ -64,7 +71,7 @@ function AppTopBar() {
               display: { xs: 'none', sm: 'block' }
             }}
           >
-            {currentMission}
+            {currentMission?.title || 'Todas las misiones completadas'}
           </Typography>
         </Stack>
       </Stack>

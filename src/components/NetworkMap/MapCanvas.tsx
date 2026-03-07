@@ -21,6 +21,8 @@ import ChannelEdge from './ChannelEdge'
 import NodeItem from './NodeItem'
 import { loadGameProgress, saveGameProgress } from '../../utils/gameProgress'
 import { useNetworkStore } from '../../store/useNetworkStore'
+import { useMissionStore } from '../../store/useMissionStore'
+import { useGameSounds } from '../../hooks/useGameSounds'
 
 const nodeTypes: NodeTypes = {
 	networkNode: NodeItem,
@@ -198,6 +200,16 @@ function MapCanvasInner() {
 	const { screenToFlowPosition } = useReactFlow()
 	const [hasCreatedNode, setHasCreatedNode] = useState(getInitialHasCreatedNode())
 	const { setSelectedNode } = useNetworkStore()
+	const { completeMission, xp, completedMissions } = useMissionStore()
+	const [showXPNotification, setShowXPNotification] = useState(false)
+	const [earnedXP, setEarnedXP] = useState(0)
+	const [xpPosition, setXPPosition] = useState({ x: 0, y: 0 })
+	const { playNodeCreated, playMissionComplete, playXPGained } = useGameSounds()
+	
+	// Verificar si los modales fueron completados y mostrar hint
+	const savedProgress = loadGameProgress()
+	const modalsCompleted = savedProgress?.modalsCompleted ?? false
+	const showDoubleClickHint = modalsCompleted && !hasCreatedNode
 
 	// Guardar progreso cuando cambien los nodos o edges
 	useEffect(() => {
@@ -205,8 +217,10 @@ function MapCanvasInner() {
 			nodes,
 			edges,
 			hasCreatedNode,
+			xp,
+			completedMissions,
 		})
-	}, [nodes, edges, hasCreatedNode])
+	}, [nodes, edges, hasCreatedNode, xp, completedMissions])
 
 	const onConnect = useCallback(
 		(connection: Connection) => {
@@ -273,14 +287,32 @@ function MapCanvasInner() {
 				setNodes([newNode])
 				setEdges([])
 				setHasCreatedNode(true)
+				
+				// Reproducir sonidos de juego
+				playNodeCreated()
+				setTimeout(() => playMissionComplete(), 200)
+				setTimeout(() => playXPGained(), 400)
+				
+				// Completar misión y mostrar notificación
+				completeMission('create-first-node')
+				setEarnedXP(75)
+				setXPPosition({ x: event.clientX, y: event.clientY })
+				setShowXPNotification(true)
+				
+				// Ocultar notificación después de 2 segundos
+				setTimeout(() => {
+					setShowXPNotification(false)
+				}, 2000)
 			} else {
+				// Reproducir sonido de creación para nodos subsecuentes
+				playNodeCreated()
 				setNodes((nds) => {
 					const userNodes = nds.filter(n => !n.data?.isPlaceholder)
 					return [...userNodes, newNode]
 				})
 			}
 		},
-		[screenToFlowPosition, hasCreatedNode, setNodes, setEdges, setSelectedNode, nodes],
+		[screenToFlowPosition, hasCreatedNode, setNodes, setEdges, setSelectedNode, nodes, completeMission, playNodeCreated, playMissionComplete, playXPGained],
 	)
 
 	return (
@@ -299,6 +331,236 @@ function MapCanvasInner() {
 			>
 				Network Area
 			</Typography>
+
+			{/* Notificación de XP ganado */}
+			{showXPNotification && (
+				<Typography
+					variant="h4"
+					sx={{
+						position: 'absolute',
+						left: xpPosition.x,
+						top: xpPosition.y,
+						transform: 'translate(-50%, -50%)',
+						zIndex: 20,
+						pointerEvents: 'none',
+						color: '#ffffff',
+						fontWeight: 900,
+						fontSize: '2.5rem',
+						textShadow: `
+							0 0 10px rgba(100, 200, 255, 0.8),
+							0 0 20px rgba(100, 200, 255, 0.5),
+							0 0 30px rgba(100, 200, 255, 0.3),
+							2px 2px 4px rgba(0, 0, 0, 0.9),
+							-1px -1px 1px rgba(100, 200, 255, 0.4)
+						`,
+						animation: 'floatUpXPText 2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+						'@keyframes floatUpXPText': {
+							'0%': {
+								opacity: 0,
+								transform: 'translate(-50%, -50%) translateY(0) scale(0.3)',
+								filter: 'blur(4px)',
+							},
+							'15%': {
+								opacity: 1,
+								transform: 'translate(-50%, -50%) translateY(-10px) scale(1.3)',
+								filter: 'blur(0px)',
+							},
+							'30%': {
+								transform: 'translate(-50%, -50%) translateY(-20px) scale(1.1)',
+							},
+							'100%': {
+								opacity: 0,
+								transform: 'translate(-50%, -50%) translateY(-120px) scale(0.8)',
+								filter: 'blur(2px)',
+							},
+						},
+					}}
+				>
+					+{earnedXP} XP
+				</Typography>
+			)}
+
+			{/* Efecto visual para indicar doble clic */}
+			{showDoubleClickHint && (
+				<Box
+					sx={{
+						position: 'absolute',
+						top: '50%',
+						left: '50%',
+						transform: 'translate(-50%, -50%)',
+						zIndex: 10,
+						display: 'flex',
+						flexDirection: { xs: 'column', md: 'row' },
+						alignItems: 'center',
+						gap: { xs: 2, md: 3 },
+						pointerEvents: 'none',
+					}}
+				>
+					{/* Personaje dorado */}
+					<Box
+						component="img"
+						src="/golden-character.png"
+						alt="Golden Bitcoin Character"
+						sx={{
+							width: { xs: 180, md: 250 },
+							height: 'auto',
+							objectFit: 'contain',
+							filter: 'drop-shadow(0 10px 30px rgba(217, 119, 6, 0.6))',
+							animation: 'floatCharacter 3s ease-in-out infinite',
+							'@keyframes floatCharacter': {
+								'0%, 100%': {
+									transform: 'translateY(0px)',
+								},
+								'50%': {
+									transform: 'translateY(-15px)',
+								},
+							},
+						}}
+					/>
+
+					{/* Contenedor del pulso y texto */}
+					<Box
+						sx={{
+							display: 'flex',
+							flexDirection: 'column',
+							alignItems: 'center',
+							gap: 2,
+						}}
+					>
+						{/* Círculos de pulso animados */}
+						<Box sx={{ position: 'relative', width: 120, height: 120 }}>
+							{/* Círculo central */}
+							<Box
+								sx={{
+									position: 'absolute',
+									top: '50%',
+									left: '50%',
+									transform: 'translate(-50%, -50%)',
+									width: 60,
+									height: 60,
+									borderRadius: '50%',
+									backgroundColor: lightning.primary,
+									boxShadow: `0 0 30px ${lightning.primary}`,
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									animation: 'pulse 2s ease-in-out infinite',
+									'@keyframes pulse': {
+										'0%, 100%': {
+											transform: 'translate(-50%, -50%) scale(1)',
+											opacity: 1,
+										},
+										'50%': {
+											transform: 'translate(-50%, -50%) scale(1.1)',
+											opacity: 0.8,
+										},
+									},
+								}}
+							>
+								<Typography
+									sx={{
+										color: '#fff',
+										fontWeight: 900,
+										fontSize: '1.5rem',
+									}}
+								>
+									⚡
+								</Typography>
+							</Box>
+							
+							{/* Ripple 1 */}
+							<Box
+								sx={{
+									position: 'absolute',
+									top: '50%',
+									left: '50%',
+									transform: 'translate(-50%, -50%)',
+									width: 60,
+									height: 60,
+									borderRadius: '50%',
+									border: `3px solid ${lightning.primary}`,
+									animation: 'ripple 2s ease-out infinite',
+									'@keyframes ripple': {
+										'0%': {
+											width: 60,
+											height: 60,
+											opacity: 1,
+										},
+										'100%': {
+											width: 120,
+											height: 120,
+											opacity: 0,
+										},
+									},
+								}}
+							/>
+							
+							{/* Ripple 2 (con delay) */}
+							<Box
+								sx={{
+									position: 'absolute',
+									top: '50%',
+									left: '50%',
+									transform: 'translate(-50%, -50%)',
+									width: 60,
+									height: 60,
+									borderRadius: '50%',
+									border: `3px solid ${lightning.primary}`,
+									animation: 'ripple 2s ease-out infinite',
+									animationDelay: '1s',
+								}}
+							/>
+						</Box>
+
+						{/* Texto instructivo */}
+						<Box
+							sx={{
+								backgroundColor: 'rgba(0, 0, 0, 0.85)',
+								borderRadius: 2,
+								px: 3,
+								py: 2,
+								border: `2px solid ${lightning.primary}`,
+								boxShadow: `0 4px 20px rgba(217, 119, 6, 0.4)`,
+								animation: 'fadeInUp 0.5s ease-out',
+								'@keyframes fadeInUp': {
+									'0%': {
+										opacity: 0,
+										transform: 'translateY(10px)',
+									},
+									'100%': {
+										opacity: 1,
+										transform: 'translateY(0)',
+									},
+								},
+							}}
+						>
+							<Typography
+								variant="body1"
+								sx={{
+									color: '#fff',
+									fontWeight: 700,
+									textAlign: 'center',
+									fontSize: { xs: '0.9rem', md: '1rem' },
+								}}
+							>
+								Haz doble clic aquí para crear tu nodo
+							</Typography>
+							<Typography
+								variant="caption"
+								sx={{
+									color: lightning.light,
+									textAlign: 'center',
+									display: 'block',
+									mt: 0.5,
+									fontSize: { xs: '0.75rem', md: '0.8rem' },
+								}}
+							>
+								👆 Doble clic en cualquier parte del mapa
+							</Typography>
+						</Box>
+					</Box>
+				</Box>
+			)}
 
 			<ReactFlow
 				nodes={nodes}
