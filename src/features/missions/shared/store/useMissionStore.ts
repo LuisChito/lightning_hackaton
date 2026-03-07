@@ -68,11 +68,11 @@ export const useMissionStore = create<MissionState>((set, get) => ({
 
   addXP: (amount: number) => {
     set((state) => {
-      const totalXP = state.xp + amount
-      const missionAdvance = Math.floor(totalXP / 100)
-      const newXP = totalXP
-      const newMissionCounter = state.missionCounter + missionAdvance
-      const newLevel = newMissionCounter + 1
+      const safeAmount = Number.isFinite(amount) ? Math.max(0, amount) : 0
+      const newXP = state.xp + safeAmount
+      const maxMissionIndex = Math.max(0, state.missions.length - 1)
+      const newMissionCounter = Math.min(Math.floor(newXP / 100), maxMissionIndex)
+      const newLevel = Math.floor(newXP / 100) + 1
       const nextMission = state.missions[newMissionCounter] || null
       
       // Guardar en localStorage
@@ -82,57 +82,56 @@ export const useMissionStore = create<MissionState>((set, get) => ({
         completedMissions: state.completedMissions,
       })
       
-      console.log(`✨ +${amount} XP! Total: ${totalXP} XP (Misión ${newMissionCounter}, Nivel ${newLevel})`)
+      console.log(`✨ +${safeAmount} XP! Total: ${newXP} XP (Misión ${newMissionCounter}, Nivel ${newLevel})`)
       
       return { missionCounter: newMissionCounter, xp: newXP, level: newLevel, currentMission: nextMission }
     })
   },
 
   completeMission: (missionId: string) => {
-    const state = get()
-    const mission = state.missions.find((m) => m.id === missionId)
-    
-    console.log(`🎯 Intentando completar misión: ${missionId}`)
-    console.log(`   Misión encontrada:`, mission)
-    console.log(`   Ya completada:`, state.completedMissions.includes(missionId))
-    
-    if (mission && !state.completedMissions.includes(missionId)) {
-      // Actualizar misiones marcando como completada
+    set((state) => {
+      const mission = state.missions.find((m) => m.id === missionId)
+
+      console.log(`🎯 Intentando completar misión: ${missionId}`)
+      console.log('   Misión encontrada:', mission)
+      console.log('   Ya completada:', state.completedMissions.includes(missionId))
+
+      if (!mission || state.completedMissions.includes(missionId)) {
+        return state
+      }
+
       const updatedMissions = state.missions.map((m) =>
         m.id === missionId ? { ...m, completed: true } : m
       )
-      
-      console.log(`✅ Completando misión: ${mission.title}`)
-      console.log(`   Recompensa: +${mission.xpReward} XP`)
-      
-      // Agregar XP (esto también guarda en localStorage)
-      if (mission.xpReward > 0) {
-        state.addXP(mission.xpReward)
-      }
-      
-      // Actualizar misión actual a la siguiente no completada
-      const nextMission = updatedMissions.find(
-        (m) => !m.completed && m.id !== missionId
-      )
-      
       const newCompletedMissions = [...state.completedMissions, missionId]
-      
-      set({
-        missions: updatedMissions,
-        completedMissions: newCompletedMissions,
-        currentMission: state.missions[state.missionCounter] || nextMission || null,
-      })
-      
-      // Guardar en localStorage
+      const rewardXP = Math.max(0, mission.xpReward || 0)
+      const newXP = state.xp + rewardXP
+      const maxMissionIndex = Math.max(0, updatedMissions.length - 1)
+      const newMissionCounter = Math.min(Math.floor(newXP / 100), maxMissionIndex)
+      const newLevel = Math.floor(newXP / 100) + 1
+      const nextMission = updatedMissions[newMissionCounter] || null
+
+      // Guardar en localStorage de forma atómica
       saveGameProgress({
-        missionCounter: state.missionCounter,
+        missionCounter: newMissionCounter,
         completedMissions: newCompletedMissions,
-        xp: state.xp,
+        xp: newXP,
       })
-      
+
+      console.log(`✅ Completando misión: ${mission.title}`)
+      console.log(`   Recompensa: +${rewardXP} XP`)
       console.log('✅ Misión completada:', missionId)
       console.log('🎯 Siguiente misión:', nextMission?.id || 'ninguna')
-    }
+
+      return {
+        missions: updatedMissions,
+        completedMissions: newCompletedMissions,
+        missionCounter: newMissionCounter,
+        xp: newXP,
+        level: newLevel,
+        currentMission: nextMission,
+      }
+    })
   },
 
   setMissions: (missions: Mission[]) => {
@@ -140,18 +139,22 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   },
 
   loadProgress: (xp: number, missionCounter: number, completedMissions: string[]) => {
-    const level = missionCounter + 1
+    const normalizedCompletedMissions = Array.isArray(completedMissions) ? completedMissions : []
+    const safeXP = Number.isFinite(xp) ? Math.max(0, xp) : 0
+    const maxMissionIndex = Math.max(0, initialMissions.length - 1)
+    const computedMissionCounter = Math.min(Math.floor(safeXP / 100), maxMissionIndex)
+    const level = Math.floor(safeXP / 100) + 1
     const updatedMissions = initialMissions.map((m) => ({
       ...m,
-      completed: completedMissions.includes(m.id),
+      completed: normalizedCompletedMissions.includes(m.id),
     }))
-    const currentMission = updatedMissions[missionCounter] || null
+    const currentMission = updatedMissions[computedMissionCounter] || null
     
     set({
-      missionCounter,
-      xp,
+      missionCounter: computedMissionCounter,
+      xp: safeXP,
       level,
-      completedMissions,
+      completedMissions: normalizedCompletedMissions,
       missions: updatedMissions,
       currentMission,
     })

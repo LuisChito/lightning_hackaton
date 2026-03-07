@@ -25,6 +25,13 @@ import { useMissionStore } from '../../shared/store/useMissionStore'
 import { useGameSounds } from '../../../../hooks/useGameSounds'
 import NodeCreationAnimation from '../../../../components/HUD/NodeCreationAnimation'
 import ChannelModal from '../../../../components/Controls/ChannelModal'
+import Mission3LevelModals from '../../mission3/components/Mission3LevelModals'
+import { useMission3Store } from '../../mission3/store/useMission3Store'
+import {
+	canStartMission3ModalFlow,
+	hasSeenMission3ModalFlow,
+	markMission3ModalFlowSeen,
+} from '../../mission3/canvas/mission3ModalFlow'
 
 const nodeTypes: NodeTypes = {
 	networkNode: NodeItem,
@@ -110,10 +117,6 @@ function MapCanvasInner() {
 	const [showChannelEducation, setShowChannelEducation] = useState(false)
 	const [educationStep, setEducationStep] = useState(0)
 	
-	// Estado para mostrar educación de invoices
-	const [showInvoiceEducation, setShowInvoiceEducation] = useState(false)
-	const invoiceEducationShownRef = useRef(false)
-	
 	// Estado para el modal de creación de canal
 	const [showChannelModal, setShowChannelModal] = useState(false)
 	const [pendingConnection, setPendingConnection] = useState<Connection | null>(null)
@@ -122,6 +125,11 @@ function MapCanvasInner() {
 	// Estado para mostrar hint de click en el nodo
 	const [showNodeClickHint, setShowNodeClickHint] = useState(false)
 	const [firstNodeId, setFirstNodeId] = useState<string | null>(null)
+	const {
+		showLevel3ReachedModal,
+		startFlow: startMission3ModalFlow,
+		closeAll: closeMission3ModalFlow,
+	} = useMission3Store()
 	
 	// Verificar si los modales fueron completados y mostrar hint
 	const savedProgress = loadGameProgress()
@@ -131,7 +139,10 @@ function MapCanvasInner() {
 	const userNodesCount = nodes.filter(n => !n.data?.isPlaceholder).length
 	// Mostrar hint solo si tiene menos de 2 nodos del usuario
 	const showDoubleClickHint = modalsCompleted && userNodesCount < 2
-	const isCanvasLockedByModal = showChannelEducation || showInvoiceEducation || showChannelModal
+	const isCanvasLockedByModal =
+		showChannelEducation ||
+		showLevel3ReachedModal ||
+		showChannelModal
 
 	// Reproducir sonido cuando sube el XP
 	useEffect(() => {
@@ -158,13 +169,19 @@ function MapCanvasInner() {
 		previousXPRef.current = xp
 	}, [xp, playXPGained, showXPNotification])
 
-	// Mostrar educación de invoices cuando se llega a 200 XP (Misión 3)
+	// Mostrar flujo de modales de Mission 3 cuando se llega al nivel 3
 	useEffect(() => {
-		if (xp >= 200 && !invoiceEducationShownRef.current && currentMission?.id === 'create-invoice') {
-			setShowInvoiceEducation(true)
-			invoiceEducationShownRef.current = true
+		if (!canStartMission3ModalFlow(xp, currentMission?.id)) {
+			return
 		}
-	}, [xp, currentMission])
+
+		if (hasSeenMission3ModalFlow()) {
+			return
+		}
+
+		startMission3ModalFlow()
+		markMission3ModalFlowSeen()
+	}, [xp, currentMission, startMission3ModalFlow])
 
 	// Guardar progreso cuando cambien los nodos o edges (específico para Mission2)
 	useEffect(() => {
@@ -1017,100 +1034,10 @@ const handleChannelConfirm = useCallback(
 				</Box>
 			)}
 
-			{/* Modal educativo de invoices cuando llegas a 200 XP */}
-			{showInvoiceEducation && (
-				<Box
-					sx={{
-						position: 'absolute',
-						top: '50%',
-						left: 30,
-						transform: 'translateY(-50%)',
-						zIndex: 10,
-						maxWidth: 400,
-						animation: 'slideInLeft 0.5s ease-out',
-						'@keyframes slideInLeft': {
-							'0%': {
-								transform: 'translateY(-50%) translateX(-100%)',
-								opacity: 0,
-							},
-							'100%': {
-								transform: 'translateY(-50%) translateX(0)',
-								opacity: 1,
-							},
-						},
-					}}
-				>
-					<Box
-						sx={{
-							p: 3,
-							borderRadius: 2,
-							backgroundColor: '#ffffff',
-							border: '1px solid rgba(0, 0, 0, 0.1)',
-							boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-						}}
-					>
-						<Typography
-							variant="h6"
-							sx={{
-								color: lightning.primary,
-								fontWeight: 700,
-								mb: 2,
-								fontSize: '1.1rem',
-							}}
-						>
-							¡Misión 3: Crear Invoice!
-						</Typography>
-						<Typography
-							variant="body2"
-							sx={{
-								color: 'rgba(0, 0, 0, 0.87)',
-								lineHeight: 1.8,
-								mb: 2,
-							}}
-						>
-							Ahora puedes crear tu primer invoice para recibir pagos.
-						</Typography>
-						<Typography
-							variant="body2"
-							sx={{
-								color: 'rgba(0, 0, 0, 0.8)',
-								lineHeight: 1.8,
-								mb: 2.5,
-								fontWeight: 600,
-							}}
-						>
-							👉 Presiona el nodo destino y selecciona "Crear Invoice"
-						</Typography>
-						<Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-							<button
-								onClick={() => setShowInvoiceEducation(false)}
-								style={{
-									padding: '10px 24px',
-									borderRadius: '8px',
-									border: 'none',
-									backgroundColor: lightning.primary,
-									color: '#000',
-									fontWeight: 700,
-									fontSize: '0.9rem',
-									cursor: 'pointer',
-									transition: 'all 0.2s ease',
-									boxShadow: `0 4px 12px ${lightning.primary}40`,
-								}}
-								onMouseEnter={(e) => {
-									e.currentTarget.style.transform = 'translateY(-2px)';
-									e.currentTarget.style.boxShadow = `0 6px 16px ${lightning.primary}60`;
-								}}
-								onMouseLeave={(e) => {
-									e.currentTarget.style.transform = 'translateY(0)';
-									e.currentTarget.style.boxShadow = `0 4px 12px ${lightning.primary}40`;
-								}}
-							>
-								Entendido
-							</button>
-						</Box>
-					</Box>
-				</Box>
-			)}
+			<Mission3LevelModals
+				showLevel3ReachedModal={showLevel3ReachedModal}
+				onCloseLevel3Modal={closeMission3ModalFlow}
+			/>
 
 			{/* Bloquea interacción del canvas mientras haya modales abiertos */}
 			{isCanvasLockedByModal && (

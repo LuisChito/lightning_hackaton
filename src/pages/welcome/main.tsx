@@ -194,7 +194,7 @@ function WelcomePage() {
               letterSpacing: '0.05em',
             }}
           >
-            🎮 Juega y Aprende Bitcoin
+            🎮 Juega y Aprende
           </Box>
         </Box>
 

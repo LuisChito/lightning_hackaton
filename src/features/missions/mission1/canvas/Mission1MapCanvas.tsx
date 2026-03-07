@@ -401,6 +401,12 @@ function MapCanvasInner() {
 				// Completar misión después de la animación
 				setTimeout(() => {
 					completeMission('create-first-node')
+
+					// Asegura persistencia de los +40 XP del primer nodo en localStorage.
+					const persistedXP = loadGameProgress()?.xp ?? 0
+					if (persistedXP < 40) {
+						saveGameProgress({ xp: 40 }, 'mission1')
+					}
 					// La notificación de XP se mostrará automáticamente por el useEffect
 					
 					// Reproducir sonido de misión completada

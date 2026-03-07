@@ -97,36 +97,6 @@ export const loadGameProgress = (): GameProgress | null => {
       return null
     }
     
-    // VALIDACIÓN: Si el progreso tiene misiones completadas pero el XP no coincide
-    // con las nuevas recompensas, invalidar el localStorage
-    const expectedXPForMissions: Record<string, number> = {
-      'create-first-node': 40,
-      'create-first-channel': 100,
-      'create-invoice': 50,
-    }
-    
-    // Calcular XP esperado basado en misiones completadas
-    let expectedXP = 0
-    if (progress.completedMissions) {
-      progress.completedMissions.forEach((missionId: string) => {
-        if (expectedXPForMissions[missionId]) {
-          expectedXP += expectedXPForMissions[missionId]
-        }
-      })
-    }
-    
-    // Si el XP guardado no coincide con el esperado, resetear localStorage
-    // (esto indica que las recompensas cambiaron desde la última vez)
-    if (progress.xp > 0 && progress.completedMissions && progress.completedMissions.length > 0) {
-      // Tolerancia: el XP puede ser mayor por cambios de nombre/balance
-      const maxExpectedXP = expectedXP + 100 // +60 por nombre y balance
-      if (progress.xp > maxExpectedXP || expectedXP === 0) {
-        console.warn('⚠️ XP desactualizado en localStorage. Limpiando...')
-        resetGameProgress()
-        return null
-      }
-    }
-    
     return progress
   } catch (error) {
     console.error('Error loading game progress:', error)
@@ -145,6 +115,7 @@ export const resetGameProgress = (): void => {
   }
 
   unlockKeys.forEach((key) => localStorage.removeItem(key))
+  localStorage.removeItem('mission3-level-modal-seen')
   localStorage.removeItem(STORAGE_KEY)
   localStorage.removeItem('currentSessionId')
   localStorage.removeItem('playerName')
