@@ -6,6 +6,7 @@ interface GameProgress {
   nodes: Node[]
   edges: Edge[]
   hasCreatedNode: boolean
+  hasClickedNode: boolean
   modalsCompleted: boolean
   xp: number
   completedMissions: string[]
@@ -43,6 +44,7 @@ export const saveGameProgress = (progress: Partial<GameProgress>): void => {
     nodes: progress.nodes || currentProgress?.nodes || [],
     edges: progress.edges || currentProgress?.edges || [],
     hasCreatedNode: progress.hasCreatedNode ?? currentProgress?.hasCreatedNode ?? false,
+    hasClickedNode: progress.hasClickedNode ?? currentProgress?.hasClickedNode ?? false,
     modalsCompleted: progress.modalsCompleted ?? currentProgress?.modalsCompleted ?? false,
     xp: progress.xp ?? currentProgress?.xp ?? 0,
     completedMissions: progress.completedMissions || currentProgress?.completedMissions || [],

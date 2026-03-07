@@ -206,9 +206,14 @@ function MapCanvasInner() {
 	const [xpPosition, setXPPosition] = useState({ x: 0, y: 0 })
 	const { playNodeCreated, playMissionComplete, playXPGained } = useGameSounds()
 	
+	// Estado para mostrar hint de click en el nodo
+	const [showNodeClickHint, setShowNodeClickHint] = useState(false)
+	const [firstNodeId, setFirstNodeId] = useState<string | null>(null)
+	
 	// Verificar si los modales fueron completados y mostrar hint
 	const savedProgress = loadGameProgress()
 	const modalsCompleted = savedProgress?.modalsCompleted ?? false
+	const hasClickedNode = savedProgress?.hasClickedNode ?? false
 	const showDoubleClickHint = modalsCompleted && !hasCreatedNode
 
 	// Guardar progreso cuando cambien los nodos o edges
@@ -248,8 +253,17 @@ function MapCanvasInner() {
 	const onNodeClick = useCallback(
 		(_event: React.MouseEvent, node: Node) => {
 			setSelectedNode(node)
+			
+			// Ocultar hint si se hace click en el primer nodo creado
+			if (showNodeClickHint && node.id === firstNodeId) {
+				setShowNodeClickHint(false)
+				// Guardar en localStorage que ya se hizo click
+				saveGameProgress({
+					hasClickedNode: true,
+				})
+			}
 		},
-		[setSelectedNode],
+		[setSelectedNode, showNodeClickHint, firstNodeId],
 	)
 
 	const onPaneClick = useCallback(
@@ -287,6 +301,7 @@ function MapCanvasInner() {
 				setNodes([newNode])
 				setEdges([])
 				setHasCreatedNode(true)
+				setFirstNodeId(newNode.id)
 				
 				// Reproducir sonidos de juego
 				playNodeCreated()
@@ -303,6 +318,13 @@ function MapCanvasInner() {
 				setTimeout(() => {
 					setShowXPNotification(false)
 				}, 2000)
+				
+				// Mostrar hint para hacer click en el nodo (solo si no se ha clickeado antes)
+				if (!hasClickedNode) {
+					setTimeout(() => {
+						setShowNodeClickHint(true)
+					}, 2500)
+				}
 			} else {
 				// Reproducir sonido de creación para nodos subsecuentes
 				playNodeCreated()
@@ -312,7 +334,7 @@ function MapCanvasInner() {
 				})
 			}
 		},
-		[screenToFlowPosition, hasCreatedNode, setNodes, setEdges, setSelectedNode, nodes, completeMission, playNodeCreated, playMissionComplete, playXPGained],
+		[screenToFlowPosition, hasCreatedNode, setNodes, setEdges, setSelectedNode, nodes, completeMission, playNodeCreated, playMissionComplete, playXPGained, hasClickedNode],
 	)
 
 	return (
@@ -558,6 +580,94 @@ function MapCanvasInner() {
 								👆 Doble clic en cualquier parte del mapa
 							</Typography>
 						</Box>
+					</Box>
+				</Box>
+			)}
+
+			{/* Hint para hacer click en el nodo creado */}
+			{showNodeClickHint && (
+				<Box
+					sx={{
+						position: 'absolute',
+						top: '50%',
+						left: '50%',
+						transform: 'translate(-50%, -50%)',
+						zIndex: 10,
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: 2,
+						pointerEvents: 'none',
+						animation: 'fadeInScale 0.6s ease-out',
+						'@keyframes fadeInScale': {
+							'0%': {
+								opacity: 0,
+								transform: 'translate(-50%, -50%) scale(0.8)',
+							},
+							'100%': {
+								opacity: 1,
+								transform: 'translate(-50%, -50%) scale(1)',
+							},
+						},
+					}}
+				>
+					{/* Personaje */}
+					<Box
+						component="img"
+						src="/personaje_saltando.png"
+						alt="Character"
+						sx={{
+							width: { xs: 120, md: 140 },
+							height: 'auto',
+							objectFit: 'contain',
+							filter: 'drop-shadow(0 8px 24px rgba(217, 119, 6, 0.5))',
+							animation: 'bounce 1.5s ease-in-out infinite',
+							'@keyframes bounce': {
+								'0%, 100%': {
+									transform: 'translateY(0px)',
+								},
+								'50%': {
+									transform: 'translateY(-10px)',
+								},
+							},
+						}}
+					/>
+
+					{/* Texto instructivo */}
+					<Box
+						sx={{
+							backgroundColor: 'rgba(0, 0, 0, 0.9)',
+							borderRadius: 2,
+							px: 4,
+							py: 2.5,
+							border: `3px solid ${lightning.primary}`,
+							boxShadow: `0 6px 24px rgba(217, 119, 6, 0.5)`,
+							maxWidth: { xs: 260, md: 300 },
+						}}
+					>
+						<Typography
+							variant="h6"
+							sx={{
+								color: '#fff',
+								fontWeight: 800,
+								textAlign: 'center',
+								fontSize: { xs: '1.1rem', md: '1.3rem' },
+								mb: 1,
+							}}
+						>
+							¡Selecciona tu nodo!
+						</Typography>
+						<Typography
+							variant="body2"
+							sx={{
+								color: lightning.light,
+								textAlign: 'center',
+								fontSize: { xs: '0.9rem', md: '1rem' },
+								lineHeight: 1.5,
+							}}
+						>
+							👆 Haz click en el nodo que acabas de crear
+						</Typography>
 					</Box>
 				</Box>
 			)}
