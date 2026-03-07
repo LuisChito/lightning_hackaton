@@ -23,6 +23,7 @@ import { loadGameProgress, saveGameProgress } from '../../shared/services/missio
 import { useNetworkStore } from '../store/useNetworkStore'
 import { useMissionStore } from '../../shared/store/useMissionStore'
 import { useGameSounds } from '../../../../hooks/useGameSounds'
+import NodeCreationAnimation from '../../../../components/HUD/NodeCreationAnimation'
 
 const nodeTypes: NodeTypes = {
 	networkNode: NodeItem,
@@ -32,127 +33,10 @@ const edgeTypes: EdgeTypes = {
 	channelEdge: ChannelEdge,
 }
 
-const initialNodes: Node[] = [
-	// Nodo central (Hub principal)
-	{ 
-		id: 'lightning-hub', 
-		type: 'networkNode', 
-		data: { 
-			label: 'LN-Hub', 
-			nombre: 'LN-Hub',
-			balance: 5000000,
-			estado: 'activo' as const,
-			isPlaceholder: true 
-		}, 
-		position: { x: 400, y: 300 } 
-	},
-	
-	// Nodos conectados al hub (nivel 1)
-	{ 
-		id: 'alice', 
-		type: 'networkNode', 
-		data: { 
-			label: 'Alice', 
-			nombre: 'Alice',
-			balance: 2000000,
-			estado: 'activo' as const,
-			isPlaceholder: true 
-		}, 
-		position: { x: 200, y: 150 } 
-	},
-	{ 
-		id: 'bob', 
-		type: 'networkNode', 
-		data: { 
-			label: 'Bob', 
-			nombre: 'Bob',
-			balance: 1500000,
-			estado: 'activo' as const,
-			isPlaceholder: true 
-		}, 
-		position: { x: 600, y: 150 } 
-	},
-	{ 
-		id: 'carol', 
-		type: 'networkNode', 
-		data: { 
-			label: 'Carol', 
-			nombre: 'Carol',
-			balance: 3000000,
-			estado: 'activo' as const,
-			isPlaceholder: true 
-		}, 
-		position: { x: 650, y: 450 } 
-	},
-	{ 
-		id: 'dave', 
-		type: 'networkNode', 
-		data: { 
-			label: 'Dave', 
-			nombre: 'Dave',
-			balance: 1495918,
-			estado: 'activo' as const,
-			isPlaceholder: true 
-		}, 
-		position: { x: 150, y: 450 } 
-	},
-	
-	// Nodos periféricos (nivel 2)
-	{ 
-		id: 'erin', 
-		type: 'networkNode', 
-		data: { 
-			label: 'Erin', 
-			nombre: 'Erin',
-			balance: 800000,
-			estado: 'activo' as const,
-			isPlaceholder: true 
-		}, 
-		position: { x: 50, y: 250 } 
-	},
-	{ 
-		id: 'frank', 
-		type: 'networkNode', 
-		data: { 
-			label: 'Frank', 
-			nombre: 'Frank',
-			balance: 1200000,
-			estado: 'activo' as const,
-			isPlaceholder: true 
-		}, 
-		position: { x: 750, y: 250 } 
-	},
-	{ 
-		id: 'grace', 
-		type: 'networkNode', 
-		data: { 
-			label: 'Grace', 
-			nombre: 'Grace',
-			balance: 900000,
-			estado: 'activo' as const,
-			isPlaceholder: true 
-		}, 
-		position: { x: 400, y: 550 } 
-	},
-]
+// Mission 2 inicia sin nodos placeholder - el usuario debe crear sus propios nodos
+const initialNodes: Node[] = []
 
-const initialEdges: Edge[] = [
-	// Conexiones hub central
-	{ id: 'hub-alice', source: 'lightning-hub', target: 'alice', type: 'channelEdge', data: { label: 'canal1' } },
-	{ id: 'hub-bob', source: 'lightning-hub', target: 'bob', type: 'channelEdge', data: { label: 'canal2' } },
-	{ id: 'hub-carol', source: 'lightning-hub', target: 'carol', type: 'channelEdge', data: { label: 'canal3' } },
-	{ id: 'hub-dave', source: 'lightning-hub', target: 'dave', type: 'channelEdge', data: { label: 'canal4' } },
-	
-	// Conexiones periféricas (rutas alternativas)
-	{ id: 'alice-erin', source: 'alice', target: 'erin', type: 'channelEdge', data: { label: 'canal5' } },
-	{ id: 'bob-frank', source: 'bob', target: 'frank', type: 'channelEdge', data: { label: 'canal6' } },
-	{ id: 'carol-grace', source: 'carol', target: 'grace', type: 'channelEdge', data: { label: 'canal7' } },
-	{ id: 'dave-grace', source: 'dave', target: 'grace', type: 'channelEdge', data: { label: 'canal8' } },
-	
-	// Conexiones directas entre usuarios (rutas alternativas sin hub)
-	{ id: 'alice-bob', source: 'alice', target: 'bob', type: 'channelEdge', data: { label: 'canal9' } },
-	{ id: 'erin-dave', source: 'erin', target: 'dave', type: 'channelEdge', data: { label: 'canal10' } },
-]
+const initialEdges: Edge[] = []
 
 const getNextChannelNumber = (edges: Edge[]): number => {
 	const numbers = edges
@@ -173,8 +57,13 @@ const getNextChannelNumber = (edges: Edge[]): number => {
 // Función para obtener nodos iniciales (desde localStorage o por defecto)
 const getInitialNodes = (): Node[] => {
 	const savedProgress = loadGameProgress()
-	if (savedProgress && savedProgress.nodes.length > 0) {
-		return savedProgress.nodes
+	// Si Mission2 tiene progreso propio, usarlo
+	if (savedProgress?.mission2 && savedProgress.mission2.nodes.length > 0) {
+		return savedProgress.mission2.nodes
+	}
+	// Si no, heredar los nodos de Mission1 para continuar desde ahí
+	if (savedProgress?.mission1 && savedProgress.mission1.nodes.length > 0) {
+		return savedProgress.mission1.nodes
 	}
 	return initialNodes
 }
@@ -182,8 +71,13 @@ const getInitialNodes = (): Node[] => {
 // Función para obtener edges iniciales (desde localStorage o por defecto)
 const getInitialEdges = (): Edge[] => {
 	const savedProgress = loadGameProgress()
-	if (savedProgress && savedProgress.edges.length > 0) {
-		return savedProgress.edges
+	// Si Mission2 tiene progreso propio, usarlo
+	if (savedProgress?.mission2 && savedProgress.mission2.edges.length > 0) {
+		return savedProgress.mission2.edges
+	}
+	// Si no, heredar los edges de Mission1
+	if (savedProgress?.mission1 && savedProgress.mission1.edges.length > 0) {
+		return savedProgress.mission1.edges
 	}
 	return initialEdges
 }
@@ -191,7 +85,8 @@ const getInitialEdges = (): Edge[] => {
 // Función para obtener el estado inicial de hasCreatedNode
 const getInitialHasCreatedNode = (): boolean => {
 	const savedProgress = loadGameProgress()
-	return savedProgress?.hasCreatedNode ?? false
+	// Usar el progreso específico de Mission2
+	return savedProgress?.mission2?.hasCreatedNode ?? false
 }
 
 function MapCanvasInner() {
@@ -204,7 +99,14 @@ function MapCanvasInner() {
 	const [showXPNotification, setShowXPNotification] = useState(false)
 	const [earnedXP, setEarnedXP] = useState(0)
 	const [xpPosition, setXPPosition] = useState({ x: 0, y: 0 })
-	const { playNodeCreated, playMissionComplete, playXPGained } = useGameSounds()
+	const { playNodeCreated, playNodeInitialization, playMissionComplete, playXPGained } = useGameSounds()
+	
+	// Estado para la animación de creación de nodo
+	const [showNodeCreationAnimation, setShowNodeCreationAnimation] = useState(false)
+	
+	// Estado para mostrar secuencia educativa de canales
+	const [showChannelEducation, setShowChannelEducation] = useState(false)
+	const [educationStep, setEducationStep] = useState(0)
 	
 	// Estado para mostrar hint de click en el nodo
 	const [showNodeClickHint, setShowNodeClickHint] = useState(false)
@@ -213,10 +115,13 @@ function MapCanvasInner() {
 	// Verificar si los modales fueron completados y mostrar hint
 	const savedProgress = loadGameProgress()
 	const modalsCompleted = savedProgress?.modalsCompleted ?? false
-	const hasClickedNode = savedProgress?.hasClickedNode ?? false
-	const showDoubleClickHint = modalsCompleted && !hasCreatedNode
+	const hasClickedNode = savedProgress?.mission2?.hasClickedNode ?? false
+	// Contar nodos del usuario (excluir placeholders)
+	const userNodesCount = nodes.filter(n => !n.data?.isPlaceholder).length
+	// Mostrar hint solo si tiene menos de 2 nodos del usuario
+	const showDoubleClickHint = modalsCompleted && userNodesCount < 2
 
-	// Guardar progreso cuando cambien los nodos o edges
+	// Guardar progreso cuando cambien los nodos o edges (específico para Mission2)
 	useEffect(() => {
 		saveGameProgress({
 			nodes,
@@ -224,7 +129,7 @@ function MapCanvasInner() {
 			hasCreatedNode,
 			xp,
 			completedMissions,
-		})
+		}, 'mission2')
 	}, [nodes, edges, hasCreatedNode, xp, completedMissions])
 
 	const onConnect = useCallback(
@@ -296,10 +201,10 @@ function MapCanvasInner() {
 			// Ocultar hint si se hace click en el primer nodo creado
 			if (showNodeClickHint && node.id === firstNodeId) {
 				setShowNodeClickHint(false)
-				// Guardar en localStorage que ya se hizo click
+				// Guardar en localStorage que ya se hizo click (específico para Mission2)
 				saveGameProgress({
 					hasClickedNode: true,
-				})
+				}, 'mission2')
 			}
 		},
 		[setSelectedNode, showNodeClickHint, firstNodeId],
@@ -319,7 +224,7 @@ function MapCanvasInner() {
 				y: event.clientY,
 			})
 
-			const nodeNumber = hasCreatedNode ? nodes.filter(n => !n.data?.isPlaceholder).length + 1 : 1
+			const nodeNumber = userNodesCount + 1
 			const nodeName = `node-${nodeNumber}`
 
 			const newNode: Node = {
@@ -329,56 +234,720 @@ function MapCanvasInner() {
 					label: nodeName,
 					nombre: nodeName,
 					// El primer nodo del jugador arranca con saldo para permitir validación de canal.
-					balance: hasCreatedNode ? 0 : 100000,
+					balance: userNodesCount === 0 ? 100000 : 0,
 					estado: 'activo' as const,
 					isPlaceholder: false 
 				},
 				position,
 			}
 
-			// Si es el primer nodo creado, eliminar los placeholders
-			if (!hasCreatedNode) {
+			// Si ya tiene nodos del usuario, solo agregar el nuevo nodo (mantener los existentes)
+			if (userNodesCount > 0) {
+				// Si es el segundo nodo (primer nodo en Mission 2), mostrar animación
+				if (userNodesCount === 1 || !hasCreatedNode) {
+					// Mostrar animación de creación de nodo
+					setShowNodeCreationAnimation(true)
+					
+					// Reproducir sonido épico de inicialización
+					playNodeInitialization()
+					
+					// Agregar el nodo después de un delay
+					setTimeout(() => {
+						setNodes((nds) => {
+							const userNodes = nds.filter(n => !n.data?.isPlaceholder)
+							return [...userNodes, newNode]
+						})
+					}, 100)
+					
+					// Mostrar secuencia educativa de canales después de la animación (cuando tenga 2 nodos)
+					setTimeout(() => {
+						setEducationStep(0)
+						setShowChannelEducation(true)
+					}, 3200)
+				} else {
+					// Nodos subsecuentes: solo reproducir sonido simple
+					playNodeCreated()
+					setNodes((nds) => {
+						const userNodes = nds.filter(n => !n.data?.isPlaceholder)
+						return [...userNodes, newNode]
+					})
+				}
+				
+				// Si es el segundo nodo (Mission 2), marcar que ya creó un nodo en Mission2
+				if (!hasCreatedNode) {
+					setHasCreatedNode(true)
+				}
+			} else {
+				// Primera vez creando un nodo (no hay nodos del usuario)
 				setNodes([newNode])
 				setEdges([])
 				setHasCreatedNode(true)
 				setFirstNodeId(newNode.id)
 				
-				// Reproducir sonidos de juego
-				playNodeCreated()
-				setTimeout(() => playMissionComplete(), 200)
-				setTimeout(() => playXPGained(), 400)
+				// Mostrar animación de creación de nodo
+				setShowNodeCreationAnimation(true)
 				
-				// Completar misión y mostrar notificación
-				completeMission('create-first-node')
-				setEarnedXP(40)
-				setXPPosition({ x: event.clientX, y: event.clientY })
-				setShowXPNotification(true)
+				// Reproducir sonido épico de inicialización
+				playNodeInitialization()
+				
+				// Completar misión y mostrar notificación después de la animación
+				setTimeout(() => {
+					completeMission('create-first-node')
+					setEarnedXP(40)
+					setXPPosition({ x: event.clientX, y: event.clientY })
+					setShowXPNotification(true)
+					
+					// Reproducir sonidos adicionales
+					playMissionComplete()
+					setTimeout(() => playXPGained(), 200)
+				}, 2400)
 				
 				// Ocultar notificación después de 2 segundos
 				setTimeout(() => {
 					setShowXPNotification(false)
-				}, 2000)
+				}, 4400)
 				
 				// Mostrar hint para hacer click en el nodo (solo si no se ha clickeado antes)
 				if (!hasClickedNode) {
 					setTimeout(() => {
 						setShowNodeClickHint(true)
-					}, 2500)
+					}, 4800)
 				}
-			} else {
-				// Reproducir sonido de creación para nodos subsecuentes
-				playNodeCreated()
-				setNodes((nds) => {
-					const userNodes = nds.filter(n => !n.data?.isPlaceholder)
-					return [...userNodes, newNode]
-				})
 			}
 		},
-		[screenToFlowPosition, hasCreatedNode, setNodes, setEdges, setSelectedNode, nodes, completeMission, playNodeCreated, playMissionComplete, playXPGained, hasClickedNode],
+		[screenToFlowPosition, hasCreatedNode, userNodesCount, setNodes, setEdges, setSelectedNode, nodes, completeMission, playNodeCreated, playNodeInitialization, playMissionComplete, playXPGained, hasClickedNode],
 	)
 
 	return (
 		<>
+			{/* Animación de creación de nodo */}
+			<NodeCreationAnimation
+				open={showNodeCreationAnimation}
+				onComplete={() => setShowNodeCreationAnimation(false)}
+			/>
+
+			{/* Secuencia educativa de canales cuando tiene 2 nodos */}
+			{showChannelEducation && (
+				<Box
+					sx={{
+						position: 'absolute',
+						top: '50%',
+						left: 30,
+						transform: 'translateY(-50%)',
+						zIndex: 10,
+						maxWidth: 380,
+						animation: 'slideInLeft 0.5s ease-out',
+						'@keyframes slideInLeft': {
+							'0%': {
+								transform: 'translateY(-50%) translateX(-100%)',
+								opacity: 0,
+							},
+							'100%': {
+								transform: 'translateY(-50%) translateX(0)',
+								opacity: 1,
+							},
+						},
+					}}
+				>
+					<Box
+						sx={{
+							p: 3,
+							borderRadius: 2,
+							border: `2px solid ${lightning.primary}`,
+							backgroundColor: 'rgba(0, 0, 0, 0.95)',
+							boxShadow: `0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px ${lightning.primary}40`,
+						}}
+					>
+						{/* Paso 0: Introducción */}
+						{educationStep === 0 && (
+							<>
+								<Typography
+									variant="h6"
+									sx={{
+										color: lightning.primary,
+										fontWeight: 700,
+										mb: 2,
+										fontSize: '1.1rem',
+									}}
+								>
+									Ahora que tienes 2 nodos
+								</Typography>
+								<Typography
+									variant="body2"
+									sx={{
+										color: 'rgba(255, 255, 255, 0.9)',
+										lineHeight: 1.8,
+										mb: 1.5,
+									}}
+								>
+									Puedes conectarte con otros nodos abriendo canales.
+								</Typography>
+								<Typography
+									variant="body2"
+									sx={{
+										color: 'rgba(255, 255, 255, 0.85)',
+										lineHeight: 1.8,
+									}}
+								>
+									Los canales permiten que los pagos viajen entre nodos.
+								</Typography>
+							</>
+						)}
+
+						{/* Paso 1: Explicación de canales con visual */}
+						{educationStep === 1 && (
+							<>
+								<Typography
+									variant="h6"
+									sx={{
+										color: lightning.primary,
+										fontWeight: 700,
+										mb: 2,
+										fontSize: '1.1rem',
+									}}
+								>
+									¿Qué es un canal?
+								</Typography>
+								<Typography
+									variant="body2"
+									sx={{
+										color: 'rgba(255, 255, 255, 0.9)',
+										lineHeight: 1.8,
+										mb: 2.5,
+									}}
+								>
+									Un canal es un túnel bidireccional entre dos nodos:
+								</Typography>
+								<Box
+									sx={{
+										p: 3,
+										borderRadius: 2,
+										backgroundColor: 'rgba(0, 0, 0, 0.4)',
+										border: '1px solid rgba(255, 255, 255, 0.1)',
+										mb: 2,
+										position: 'relative',
+										overflow: 'hidden',
+									}}
+								>
+									{/* Animación de fondo de partículas */}
+									<Box
+										sx={{
+											position: 'absolute',
+											top: 0,
+											left: 0,
+											right: 0,
+											bottom: 0,
+											background: `radial-gradient(circle at 50% 50%, ${lightning.primary}10 0%, transparent 70%)`,
+											animation: 'pulse 2s ease-in-out infinite',
+											'@keyframes pulse': {
+												'0%, 100%': { opacity: 0.3 },
+												'50%': { opacity: 0.6 },
+											},
+										}}
+									/>
+
+									{/* Visualización de los nodos */}
+									<Box
+										sx={{
+											display: 'flex',
+											alignItems: 'center',
+											justifyContent: 'space-between',
+											position: 'relative',
+											zIndex: 1,
+										}}
+									>
+										{/* Nodo izquierdo (Tu Nodo) */}
+										<Box
+											sx={{
+												display: 'flex',
+												flexDirection: 'column',
+												alignItems: 'center',
+												gap: 1,
+											}}
+										>
+											<Box
+												sx={{
+													width: 60,
+													height: 60,
+													borderRadius: '50%',
+													background: `linear-gradient(135deg, ${lightning.primary} 0%, ${lightning.secondary} 100%)`,
+													boxShadow: `0 0 20px ${lightning.primary}80, 0 0 40px ${lightning.primary}40, inset 0 0 20px rgba(255,255,255,0.2)`,
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+													animation: 'nodeGlow 2s ease-in-out infinite, float 3s ease-in-out infinite',
+													'@keyframes nodeGlow': {
+														'0%, 100%': { boxShadow: `0 0 20px ${lightning.primary}80, 0 0 40px ${lightning.primary}40, inset 0 0 20px rgba(255,255,255,0.2)` },
+														'50%': { boxShadow: `0 0 30px ${lightning.primary}, 0 0 60px ${lightning.primary}60, inset 0 0 30px rgba(255,255,255,0.3)` },
+													},
+													'@keyframes float': {
+														'0%, 100%': { transform: 'translateY(0px)' },
+														'50%': { transform: 'translateY(-8px)' },
+													},
+												}}
+											>
+												<Typography
+													sx={{
+														fontSize: '1.5rem',
+														fontWeight: 800,
+														color: '#000',
+														textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+													}}
+												>
+													A
+												</Typography>
+											</Box>
+											<Typography
+												sx={{
+													fontSize: '0.75rem',
+													color: lightning.primary,
+													fontWeight: 700,
+													textTransform: 'uppercase',
+													letterSpacing: 1,
+												}}
+											>
+												Tu Nodo
+											</Typography>
+										</Box>
+
+										{/* Canal animado */}
+										<Box
+											sx={{
+												flex: 1,
+												display: 'flex',
+												flexDirection: 'column',
+												alignItems: 'center',
+												position: 'relative',
+												my: 2,
+											}}
+										>
+											{/* Línea del canal con gradiente */}
+											<Box
+												sx={{
+													width: '100%',
+													height: 4,
+													background: `linear-gradient(90deg, ${lightning.primary} 0%, ${lightning.secondary} 50%, ${lightning.primary} 100%)`,
+													borderRadius: 2,
+													boxShadow: `0 0 10px ${lightning.primary}60`,
+													animation: 'channelPulse 2s ease-in-out infinite',
+													'@keyframes channelPulse': {
+														'0%, 100%': { opacity: 0.6, transform: 'scaleY(1)' },
+														'50%': { opacity: 1, transform: 'scaleY(1.5)' },
+													},
+												}}
+											/>
+											
+											{/* Partículas viajando */}
+											{[0, 1, 2].map((i) => (
+												<Box
+													key={i}
+													sx={{
+														position: 'absolute',
+														top: '50%',
+														left: 0,
+														width: 8,
+														height: 8,
+														borderRadius: '50%',
+														backgroundColor: lightning.primary,
+														boxShadow: `0 0 10px ${lightning.primary}`,
+														animation: `travel${i % 2 === 0 ? 'Right' : 'Left'} ${2 + i * 0.3}s ease-in-out infinite`,
+														animationDelay: `${i * 0.6}s`,
+														'@keyframes travelRight': {
+															'0%': { left: '0%', opacity: 0 },
+															'10%': { opacity: 1 },
+															'90%': { opacity: 1 },
+															'100%': { left: '100%', opacity: 0 },
+														},
+														'@keyframes travelLeft': {
+															'0%': { left: '100%', opacity: 0 },
+															'10%': { opacity: 1 },
+															'90%': { opacity: 1 },
+															'100%': { left: '0%', opacity: 0 },
+														},
+													}}
+												/>
+											))}
+										</Box>
+
+										{/* Nodo derecho (Nodo B) */}
+										<Box
+											sx={{
+												display: 'flex',
+												flexDirection: 'column',
+												alignItems: 'center',
+												gap: 1,
+											}}
+										>
+											<Box
+												sx={{
+													width: 60,
+													height: 60,
+													borderRadius: '50%',
+													background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+													boxShadow: '0 0 20px #667eea80, 0 0 40px #667eea40, inset 0 0 20px rgba(255,255,255,0.2)',
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+													animation: 'nodeGlow2 2s ease-in-out infinite 0.5s, float 3s ease-in-out infinite 1s',
+													'@keyframes nodeGlow2': {
+														'0%, 100%': { boxShadow: '0 0 20px #667eea80, 0 0 40px #667eea40, inset 0 0 20px rgba(255,255,255,0.2)' },
+														'50%': { boxShadow: '0 0 30px #667eea, 0 0 60px #667eea60, inset 0 0 30px rgba(255,255,255,0.3)' },
+													},
+												}}
+											>
+												<Typography
+													sx={{
+														fontSize: '1.5rem',
+														fontWeight: 800,
+														color: '#fff',
+														textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+													}}
+												>
+													B
+												</Typography>
+											</Box>
+											<Typography
+												sx={{
+													fontSize: '0.75rem',
+													color: '#667eea',
+													fontWeight: 700,
+													textTransform: 'uppercase',
+													letterSpacing: 1,
+												}}
+											>
+												Nodo B
+											</Typography>
+										</Box>
+									</Box>
+								</Box>
+								<Typography
+									variant="body2"
+									sx={{
+										color: 'rgba(255, 255, 255, 0.7)',
+										lineHeight: 1.6,
+										fontSize: '0.85rem',
+										textAlign: 'center',
+									}}
+								>
+									Los sats pueden fluir en ambas direcciones a través del canal.
+								</Typography>
+							</>
+						)}
+
+						{/* Paso 2: Concepto de liquidez */}
+						{educationStep === 2 && (
+							<>
+								<Typography
+									variant="h6"
+									sx={{
+										color: lightning.primary,
+										fontWeight: 700,
+										mb: 2,
+										fontSize: '1.1rem',
+									}}
+								>
+									Liquidez en canales
+								</Typography>
+								<Typography
+									variant="body2"
+									sx={{
+										color: 'rgba(255, 255, 255, 0.9)',
+										lineHeight: 1.8,
+										mb: 2.5,
+									}}
+								>
+									Cuando abres un canal de 500 sats:
+								</Typography>
+								<Box
+									sx={{
+										p: 3,
+										borderRadius: 2,
+										backgroundColor: 'rgba(0, 0, 0, 0.4)',
+										border: '1px solid rgba(255, 255, 255, 0.1)',
+										mb: 2,
+										position: 'relative',
+										overflow: 'hidden',
+									}}
+								>
+									{/* Balance labels */}
+									<Box
+										sx={{
+											display: 'flex',
+											justifyContent: 'space-between',
+											alignItems: 'center',
+											mb: 2,
+											position: 'relative',
+											zIndex: 1,
+										}}
+									>
+										<Box sx={{ textAlign: 'left' }}>
+											<Typography
+												sx={{
+													fontFamily: 'monospace',
+													fontSize: '0.75rem',
+													color: 'rgba(255, 255, 255, 0.6)',
+													mb: 0.5,
+												}}
+											>
+												Tu Nodo (origen)
+											</Typography>
+											<Typography
+												sx={{
+													fontFamily: 'monospace',
+													fontSize: '1.3rem',
+													color: lightning.primary,
+													fontWeight: 700,
+													animation: 'countUp 1s ease-out',
+													'@keyframes countUp': {
+														'0%': { opacity: 0, transform: 'scale(0.5)' },
+														'100%': { opacity: 1, transform: 'scale(1)' },
+													},
+												}}
+											>
+												500 sats
+											</Typography>
+										</Box>
+										<Typography
+											sx={{
+												fontSize: '1.5rem',
+												color: 'rgba(255, 255, 255, 0.3)',
+											}}
+										>
+											→
+										</Typography>
+										<Box sx={{ textAlign: 'right' }}>
+											<Typography
+												sx={{
+													fontFamily: 'monospace',
+													fontSize: '0.75rem',
+													color: 'rgba(255, 255, 255, 0.6)',
+													mb: 0.5,
+												}}
+											>
+												Nodo B (destino)
+											</Typography>
+											<Typography
+												sx={{
+													fontFamily: 'monospace',
+													fontSize: '1.3rem',
+													color: 'rgba(255, 255, 255, 0.5)',
+													fontWeight: 700,
+												}}
+											>
+												0 sats
+											</Typography>
+										</Box>
+									</Box>
+
+									{/* Barra de liquidez animada */}
+									<Box
+										sx={{
+											position: 'relative',
+											height: 40,
+											borderRadius: 2,
+											overflow: 'hidden',
+											backgroundColor: 'rgba(255, 255, 255, 0.05)',
+											border: '2px solid rgba(255, 255, 255, 0.1)',
+										}}
+									>
+										{/* Lado de origen (100%) */}
+										<Box
+											sx={{
+												position: 'absolute',
+												left: 0,
+												top: 0,
+												bottom: 0,
+												width: '100%',
+												background: `linear-gradient(90deg, ${lightning.primary} 0%, ${lightning.secondary} 100%)`,
+												animation: 'fillBar 1.5s ease-out',
+												'@keyframes fillBar': {
+													'0%': { width: '0%' },
+													'100%': { width: '100%' },
+												},
+											}}
+										/>
+										
+										{/* Efecto de brillo móvil */}
+										<Box
+											sx={{
+												position: 'absolute',
+												top: 0,
+												bottom: 0,
+												width: '30%',
+												background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+												animation: 'shine 2s ease-in-out infinite',
+												'@keyframes shine': {
+													'0%': { left: '-30%' },
+													'100%': { left: '100%' },
+												},
+											}}
+										/>
+
+										{/* Etiqueta central */}
+										<Box
+											sx={{
+												position: 'absolute',
+												top: '50%',
+												left: '50%',
+												transform: 'translate(-50%, -50%)',
+												zIndex: 2,
+											}}
+										>
+											<Typography
+												sx={{
+													fontFamily: 'monospace',
+													fontSize: '0.85rem',
+													fontWeight: 700,
+													color: '#000',
+													textShadow: '0 0 4px rgba(255,255,255,0.5)',
+												}}
+											>
+												Capacidad: 500 sats
+											</Typography>
+										</Box>
+									</Box>
+								</Box>
+								<Typography
+									variant="body2"
+									sx={{
+										color: 'rgba(255, 255, 255, 0.7)',
+										lineHeight: 1.6,
+										fontSize: '0.85rem',
+									}}
+								>
+									Toda la liquidez empieza en tu nodo. Puedes enviar hasta 500 sats.
+								</Typography>
+							</>
+						)}
+
+						{/* Paso 3: Prompt para conectar */}
+						{educationStep === 3 && (
+							<>
+								<Typography
+									variant="h6"
+									sx={{
+										color: lightning.primary,
+										fontWeight: 700,
+										mb: 2,
+										fontSize: '1.1rem',
+									}}
+								>
+									¡Listo para conectar!
+								</Typography>
+								<Typography
+									variant="body2"
+									sx={{
+										color: 'rgba(255, 255, 255, 0.9)',
+										lineHeight: 1.8,
+										mb: 2,
+									}}
+								>
+									Perfecto. Ahora puedes conectar ambos nodos abriendo un canal.
+								</Typography>
+								<Typography
+									variant="body2"
+									sx={{
+										color: 'rgba(255, 255, 255, 0.7)',
+										lineHeight: 1.6,
+										fontSize: '0.85rem',
+										fontStyle: 'italic',
+									}}
+								>
+									Haz clic en uno de tus nodos para empezar.
+								</Typography>
+							</>
+						)}
+
+						{/* Barra de progreso y botón siguiente */}
+						<Box sx={{ mt: 3 }}>
+							{/* Indicadores de paso */}
+							<Box
+								sx={{
+									display: 'flex',
+									gap: 1,
+									justifyContent: 'center',
+									mb: 2,
+								}}
+							>
+								{[0, 1, 2, 3].map((step) => (
+									<Box
+										key={step}
+										sx={{
+											width: 40,
+											height: 4,
+											borderRadius: 2,
+											backgroundColor:
+												step === educationStep
+													? lightning.primary
+													: step < educationStep
+													? 'rgba(255, 255, 255, 0.4)'
+													: 'rgba(255, 255, 255, 0.15)',
+											transition: 'all 0.3s ease',
+										}}
+									/>
+								))}
+							</Box>
+
+							{/* Botones de navegación */}
+							<Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+								{educationStep < 3 ? (
+									<button
+										onClick={() => setEducationStep(educationStep + 1)}
+										style={{
+											padding: '10px 24px',
+											borderRadius: '8px',
+											border: 'none',
+											backgroundColor: lightning.primary,
+											color: '#000',
+											fontWeight: 700,
+											fontSize: '0.9rem',
+											cursor: 'pointer',
+											transition: 'all 0.2s ease',
+											boxShadow: `0 4px 12px ${lightning.primary}40`,
+										}}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.transform = 'translateY(-2px)';
+											e.currentTarget.style.boxShadow = `0 6px 16px ${lightning.primary}60`;
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.transform = 'translateY(0)';
+											e.currentTarget.style.boxShadow = `0 4px 12px ${lightning.primary}40`;
+										}}
+									>
+										Siguiente
+									</button>
+								) : (
+									<button
+										onClick={() => setShowChannelEducation(false)}
+										style={{
+											padding: '10px 24px',
+											borderRadius: '8px',
+											border: `2px solid ${lightning.primary}`,
+											backgroundColor: 'transparent',
+											color: lightning.primary,
+											fontWeight: 700,
+											fontSize: '0.9rem',
+											cursor: 'pointer',
+											transition: 'all 0.2s ease',
+										}}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.backgroundColor = lightning.primary;
+											e.currentTarget.style.color = '#000';
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.backgroundColor = 'transparent';
+											e.currentTarget.style.color = lightning.primary;
+										}}
+									>
+										Entendido
+									</button>
+								)}
+							</Box>
+						</Box>
+					</Box>
+				</Box>
+			)}
+
 			<Typography
 				variant="caption"
 				sx={{
@@ -605,7 +1174,7 @@ function MapCanvasInner() {
 									fontSize: { xs: '0.9rem', md: '1rem' },
 								}}
 							>
-								Haz doble clic aquí para crear tu nodo
+								{userNodesCount === 0 ? 'Haz doble clic aquí para crear tu nodo' : 'Crea otro nodo para abrir un canal'}
 							</Typography>
 							<Typography
 								variant="caption"

@@ -61,6 +61,76 @@ export const useGameSounds = () => {
 	}, [getAudioContext])
 
 	/**
+	 * Sonido épico de inicialización de nodo - Secuencia completa para animación
+	 */
+	const playNodeInitialization = useCallback(() => {
+		const ctx = getAudioContext()
+		const now = ctx.currentTime
+
+		// Fase 1: Inicializando (0-0.8s) - Tono de carga ascendente
+		const phase1Osc = ctx.createOscillator()
+		const phase1Gain = ctx.createGain()
+		phase1Osc.type = 'sawtooth'
+		phase1Osc.frequency.setValueAtTime(150, now)
+		phase1Osc.frequency.linearRampToValueAtTime(300, now + 0.7)
+		phase1Gain.gain.setValueAtTime(0, now)
+		phase1Gain.gain.linearRampToValueAtTime(0.15, now + 0.1)
+		phase1Gain.gain.linearRampToValueAtTime(0.1, now + 0.7)
+		phase1Osc.connect(phase1Gain)
+		phase1Gain.connect(ctx.destination)
+		phase1Osc.start(now)
+		phase1Osc.stop(now + 0.8)
+
+		// Fase 2: Conectando (0.8-1.6s) - Pulsos rítmicos
+		for (let i = 0; i < 4; i++) {
+			const pulseOsc = ctx.createOscillator()
+			const pulseGain = ctx.createGain()
+			const startTime = now + 0.8 + (i * 0.2)
+			
+			pulseOsc.type = 'sine'
+			pulseOsc.frequency.setValueAtTime(400 + (i * 50), startTime)
+			pulseGain.gain.setValueAtTime(0.2, startTime)
+			pulseGain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.15)
+			
+			pulseOsc.connect(pulseGain)
+			pulseGain.connect(ctx.destination)
+			pulseOsc.start(startTime)
+			pulseOsc.stop(startTime + 0.15)
+		}
+
+		// Fase 3: Nodo creado (1.6-2.2s) - Acorde brillante ascendente
+		const successNotes = [523.25, 659.25, 783.99] // C-E-G
+		successNotes.forEach((freq, index) => {
+			const noteOsc = ctx.createOscillator()
+			const noteGain = ctx.createGain()
+			const startTime = now + 1.6 + (index * 0.08)
+			
+			noteOsc.type = 'triangle'
+			noteOsc.frequency.setValueAtTime(freq, startTime)
+			noteGain.gain.setValueAtTime(0.2, startTime)
+			noteGain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4)
+			
+			noteOsc.connect(noteGain)
+			noteGain.connect(ctx.destination)
+			noteOsc.start(startTime)
+			noteOsc.stop(startTime + 0.4)
+		})
+
+		// Fase 4: Efecto final brillante (2.2s) - Shimmer
+		const shimmerOsc = ctx.createOscillator()
+		const shimmerGain = ctx.createGain()
+		shimmerOsc.type = 'sine'
+		shimmerOsc.frequency.setValueAtTime(1500, now + 2.2)
+		shimmerOsc.frequency.exponentialRampToValueAtTime(3000, now + 2.6)
+		shimmerGain.gain.setValueAtTime(0.15, now + 2.2)
+		shimmerGain.gain.exponentialRampToValueAtTime(0.01, now + 2.8)
+		shimmerOsc.connect(shimmerGain)
+		shimmerGain.connect(ctx.destination)
+		shimmerOsc.start(now + 2.2)
+		shimmerOsc.stop(now + 2.8)
+	}, [getAudioContext])
+
+	/**
 	 * Sonido de misión completada - Fanfarria épica
 	 */
 	const playMissionComplete = useCallback(() => {
@@ -465,6 +535,7 @@ export const useGameSounds = () => {
 
 	return {
 		playNodeCreated,
+		playNodeInitialization,
 		playMissionComplete,
 		playXPGained,
 		playModalOpen,
