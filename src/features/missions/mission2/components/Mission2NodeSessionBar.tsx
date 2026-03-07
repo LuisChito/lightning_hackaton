@@ -1,8 +1,4 @@
-import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
-import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded'
-import FlashOnRoundedIcon from '@mui/icons-material/FlashOnRounded'
-import StopCircleOutlinedIcon from '@mui/icons-material/StopCircleOutlined'
-import { Box, Chip, IconButton, Stack, Typography } from '@mui/material'
+import { Box, Chip, Stack, Typography } from '@mui/material'
 import { border, background, status } from '../../../../theme/colors'
 
 function NodeSessionBar() {
