@@ -18,10 +18,8 @@ function NodeSessionBar() {
     >
       <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} flexWrap="wrap">
         <Stack direction="row" spacing={1} alignItems="center">
-          <ArrowBackRoundedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-            LuiChito
-            {/* Nombre de la sesión */}
+          Node Session
           </Typography>
           <Chip
             size="small"
@@ -36,13 +34,36 @@ function NodeSessionBar() {
           />
         </Stack>
 
-        <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap" useFlexGap>
-          <Chip size="small" label="height: 235" sx={{ color: 'text.secondary' }} />
-          <Chip size="small" icon={<FlashOnRoundedIcon fontSize="small" />} label="Quick Mine" sx={{ color: 'text.secondary' }} />
-          <Chip size="small" icon={<AutorenewRoundedIcon fontSize="small" />} label="Auto Mine: Off" sx={{ color: 'text.secondary' }} />
-          <IconButton size="small" aria-label="stop" sx={{ color: status.error }}>
-            <StopCircleOutlinedIcon fontSize="small" />
-          </IconButton>
+        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 'fit-content' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 200 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+              Progreso
+            </Typography>
+            <Box
+              sx={{
+          width: 120,
+          height: 8,
+          borderRadius: 4,
+          backgroundColor: background.secondary,
+          border: `1px solid ${border.subtle}`,
+          overflow: 'hidden',
+          position: 'relative',
+              }}
+            >
+              <Box
+          sx={{
+            height: '100%',
+            width: `${((localStorage.getItem('xp') ? parseInt(localStorage.getItem('xp') as string) : 0) % 100)}%`,
+            backgroundColor: status.success,
+            transition: 'width 0.3s ease',
+            borderRadius: 4,
+          }}
+              />
+            </Box>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, minWidth: '30px' }}>
+              {((localStorage.getItem('xp') ? parseInt(localStorage.getItem('xp') as string) : 0) % 100)}%
+            </Typography>
+          </Box>
         </Stack>
       </Stack>
     </Box>

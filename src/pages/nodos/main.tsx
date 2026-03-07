@@ -17,7 +17,7 @@ function NodosPage() {
           Nodos
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Gestiona y visualiza los nodos de la red Lightning en testnet.
+          Gestiona y visualiza los nodos de la red Lightning.
         </Typography>
         <Box sx={{ mt: 3, height: 220, borderRadius: 2, backgroundColor: background.overlay }} />
       </Paper>

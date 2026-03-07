@@ -552,7 +552,7 @@ function HomePage() {
                         letterSpacing: 0.5,
                       }}
                     >
-                      Narrativa (texto del juego)
+                      Un nodo en la red Lightning
                     </Typography>
                   </Box>
 

@@ -55,6 +55,30 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
     initialBalanceRef.current = initialBalance
   }, [node?.id, nodeLabel, isPlaceholder])
 
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.code !== 'Space') return
+
+      if (showNameGuideModal || showBalanceGuideModal) {
+        event.preventDefault()
+      }
+
+      if (showNameGuideModal) {
+        setShowNameGuideModal(false)
+        return
+      }
+
+      if (showBalanceGuideModal) {
+        setShowBalanceGuideModal(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeydown)
+    return () => {
+      window.removeEventListener('keydown', handleKeydown)
+    }
+  }, [showNameGuideModal, showBalanceGuideModal])
+
   if (!node || isPlaceholder) {
     return null
   }
@@ -289,7 +313,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
               background: '#fff',
               borderRadius: 3,
               p: { xs: 2, md: 2.5 },
-              border: `3px solid ${border.strong}`,
+              border: '3px solid #fbbf24',
               boxShadow: '0 16px 40px rgba(0,0,0,0.35)',
               maxWidth: 420,
             }}
@@ -304,7 +328,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
               Paso 1
             </Typography>
             <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
-              Cambia el nombre del nodo para continuar la Mision 1.
+              Cambia el nombre del nodo para continuar la Mision.
             </Typography>
           </Box>
         </Box>
@@ -349,7 +373,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
               background: '#fff',
               borderRadius: 3,
               p: { xs: 2, md: 2.5 },
-              border: `3px solid ${border.strong}`,
+              border: '3px solid #fbbf24',
               boxShadow: '0 16px 40px rgba(0,0,0,0.35)',
               maxWidth: 420,
             }}
