@@ -3,6 +3,7 @@ import {
 	addEdge,
 	Background,
 	BackgroundVariant,
+	ConnectionMode,
 	ReactFlow,
 	useEdgesState,
 	useNodesState,
@@ -46,21 +47,37 @@ const initialNodes: Node[] = [
 
 const initialEdges: Edge[] = [
 	// Conexiones hub central
-	{ id: 'hub-alice', source: 'lightning-hub', target: 'alice', type: 'channelEdge' },
-	{ id: 'hub-bob', source: 'lightning-hub', target: 'bob', type: 'channelEdge' },
-	{ id: 'hub-carol', source: 'lightning-hub', target: 'carol', type: 'channelEdge' },
-	{ id: 'hub-dave', source: 'lightning-hub', target: 'dave', type: 'channelEdge' },
+	{ id: 'hub-alice', source: 'lightning-hub', target: 'alice', type: 'channelEdge', data: { label: 'canal1' } },
+	{ id: 'hub-bob', source: 'lightning-hub', target: 'bob', type: 'channelEdge', data: { label: 'canal2' } },
+	{ id: 'hub-carol', source: 'lightning-hub', target: 'carol', type: 'channelEdge', data: { label: 'canal3' } },
+	{ id: 'hub-dave', source: 'lightning-hub', target: 'dave', type: 'channelEdge', data: { label: 'canal4' } },
 	
 	// Conexiones periféricas (rutas alternativas)
-	{ id: 'alice-erin', source: 'alice', target: 'erin', type: 'channelEdge' },
-	{ id: 'bob-frank', source: 'bob', target: 'frank', type: 'channelEdge' },
-	{ id: 'carol-grace', source: 'carol', target: 'grace', type: 'channelEdge' },
-	{ id: 'dave-grace', source: 'dave', target: 'grace', type: 'channelEdge' },
+	{ id: 'alice-erin', source: 'alice', target: 'erin', type: 'channelEdge', data: { label: 'canal5' } },
+	{ id: 'bob-frank', source: 'bob', target: 'frank', type: 'channelEdge', data: { label: 'canal6' } },
+	{ id: 'carol-grace', source: 'carol', target: 'grace', type: 'channelEdge', data: { label: 'canal7' } },
+	{ id: 'dave-grace', source: 'dave', target: 'grace', type: 'channelEdge', data: { label: 'canal8' } },
 	
 	// Conexiones directas entre usuarios (rutas alternativas sin hub)
-	{ id: 'alice-bob', source: 'alice', target: 'bob', type: 'channelEdge' },
-	{ id: 'erin-dave', source: 'erin', target: 'dave', type: 'channelEdge' },
+	{ id: 'alice-bob', source: 'alice', target: 'bob', type: 'channelEdge', data: { label: 'canal9' } },
+	{ id: 'erin-dave', source: 'erin', target: 'dave', type: 'channelEdge', data: { label: 'canal10' } },
 ]
+
+const getNextChannelNumber = (edges: Edge[]): number => {
+	const numbers = edges
+		.map((edge) => {
+			const label = (edge.data as { label?: string } | undefined)?.label
+			const match = typeof label === 'string' ? label.match(/canal\s*(\d+)/i) : null
+			return match ? Number.parseInt(match[1], 10) : null
+		})
+		.filter((n): n is number => n !== null)
+
+	if (numbers.length === 0) {
+		return edges.length + 1
+	}
+
+	return Math.max(...numbers) + 1
+}
 
 // Función para obtener nodos iniciales (desde localStorage o por defecto)
 const getInitialNodes = (): Node[] => {
@@ -103,21 +120,33 @@ function MapCanvasInner() {
 
 	const onConnect = useCallback(
 		(connection: Connection) => {
-			setEdges((currentEdges) =>
-				addEdge(
+			if (!connection.source || !connection.target || connection.source === connection.target) {
+				return
+			}
+
+			setEdges((currentEdges) => {
+				const channelNumber = getNextChannelNumber(currentEdges)
+
+				return addEdge(
 					{
 						...connection,
+						id: `channel-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
 						type: 'channelEdge',
+						data: { label: `canal${channelNumber}` },
 					},
 					currentEdges,
-				),
-			)
+				)
+			})
 		},
 		[setEdges],
 	)
 
 	const onPaneClick = useCallback(
 		(event: React.MouseEvent) => {
+			if (event.detail < 2) {
+				return
+			}
+
 			const position = screenToFlowPosition({
 				x: event.clientX,
 				y: event.clientY,
@@ -166,6 +195,7 @@ function MapCanvasInner() {
 			<ReactFlow
 				nodes={nodes}
 				edges={edges}
+				connectionMode={ConnectionMode.Loose}
 				onNodesChange={onNodesChange}
 				onEdgesChange={onEdgesChange}
 				onConnect={onConnect}

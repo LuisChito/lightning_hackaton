@@ -14,6 +14,8 @@ type NodeItemProps = {
 }
 
 function NodeItem({ data, selected }: NodeItemProps) {
+	const handleStyle = { background: lightning.primary, width: 8, height: 8 }
+
 	return (
 		<Box
 			sx={{
@@ -48,8 +50,11 @@ function NodeItem({ data, selected }: NodeItemProps) {
 				<BoltRoundedIcon sx={{ fontSize: 12, color: '#ffffff' }} />
 			</Box>
 
-			<Handle type="target" position={Position.Left} style={{ background: lightning.primary, width: 8, height: 8 }} />
-			<Handle type="source" position={Position.Right} style={{ background: lightning.primary, width: 8, height: 8 }} />
+			{/* 4 puntos de conexión: izquierda, derecha, arriba y abajo */}
+			<Handle id="left-target" type="target" position={Position.Left} style={handleStyle} />
+			<Handle id="top-target" type="target" position={Position.Top} style={handleStyle} />
+			<Handle id="right-source" type="source" position={Position.Right} style={handleStyle} />
+			<Handle id="bottom-source" type="source" position={Position.Bottom} style={handleStyle} />
 		</Box>
 	)
 }

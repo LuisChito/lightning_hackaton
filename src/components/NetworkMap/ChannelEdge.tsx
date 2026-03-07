@@ -2,6 +2,8 @@ import { BaseEdge, EdgeLabelRenderer, type EdgeProps, getBezierPath } from '@xyf
 import { lightning, background } from '../../theme/colors'
 
 function ChannelEdge(props: EdgeProps) {
+	const channelLabel = (props.data as { label?: string } | undefined)?.label ?? 'canal'
+
 	const [edgePath, labelX, labelY] = getBezierPath({
 		sourceX: props.sourceX,
 		sourceY: props.sourceY,
@@ -29,7 +31,7 @@ function ChannelEdge(props: EdgeProps) {
 						pointerEvents: 'none',
 					}}
 				>
-					channel
+					{channelLabel}
 				</div>
 			</EdgeLabelRenderer>
 		</>
