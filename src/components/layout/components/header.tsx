@@ -135,9 +135,9 @@ function Header() {
 									<OpenInNewRoundedIcon fontSize="small" />
 								</Stack>
 							</MenuItem>
-							<MenuItem component="a" href={'https://github.com/LuisChito/client-lightning-quest'} target="_blank" rel="noopener noreferrer" onClick={closeRepoMenu}>
+							<MenuItem component="a" href={'https://github.com/ObedDM/lightning-ai-assistant'} target="_blank" rel="noopener noreferrer" onClick={closeRepoMenu}>
 								<Stack direction="row" spacing={1.2} alignItems="center">
-									<Typography variant="body2">Backend</Typography>
+									<Typography variant="body2">Utils</Typography>
 									<OpenInNewRoundedIcon fontSize="small" />
 								</Stack>
 							</MenuItem>
