@@ -131,6 +131,7 @@ function MapCanvasInner() {
 	const userNodesCount = nodes.filter(n => !n.data?.isPlaceholder).length
 	// Mostrar hint solo si tiene menos de 2 nodos del usuario
 	const showDoubleClickHint = modalsCompleted && userNodesCount < 2
+	const isCanvasLockedByModal = showChannelEducation || showInvoiceEducation || showChannelModal
 
 	// Reproducir sonido cuando sube el XP
 	useEffect(() => {
@@ -177,6 +178,10 @@ function MapCanvasInner() {
 
 	const onConnect = useCallback(
 		(connection: Connection) => {
+			if (isCanvasLockedByModal) {
+				return
+			}
+
 			if (!connection.source || !connection.target || connection.source === connection.target) {
 				return
 			}
@@ -204,7 +209,7 @@ function MapCanvasInner() {
 		setPendingConnection(connection)
 		setShowChannelModal(true)
 	},
-	[nodes],
+	[nodes, isCanvasLockedByModal],
 )
 
 const handleChannelConfirm = useCallback(
@@ -248,6 +253,10 @@ const handleChannelConfirm = useCallback(
 
 	const onNodeClick = useCallback(
 		(_event: React.MouseEvent, node: Node) => {
+			if (isCanvasLockedByModal) {
+				return
+			}
+
 			setSelectedNode(node)
 			
 			// Ocultar hint si se hace click en el primer nodo creado
@@ -259,11 +268,15 @@ const handleChannelConfirm = useCallback(
 				}, 'mission2')
 			}
 		},
-		[setSelectedNode, showNodeClickHint, firstNodeId],
+		[setSelectedNode, showNodeClickHint, firstNodeId, isCanvasLockedByModal],
 	)
 
 	const onPaneClick = useCallback(
 		(event: React.MouseEvent) => {
+			if (isCanvasLockedByModal) {
+				return
+			}
+
 			// Limpiar selección al hacer click en el pane vacío
 			setSelectedNode(null)
 
@@ -356,7 +369,7 @@ const handleChannelConfirm = useCallback(
 				}
 			}
 		},
-		[screenToFlowPosition, hasCreatedNode, userNodesCount, setNodes, setEdges, setSelectedNode, nodes, completeMission, playNodeCreated, playNodeInitialization, playMissionComplete, playXPGained, hasClickedNode],
+		[screenToFlowPosition, hasCreatedNode, userNodesCount, setNodes, setEdges, setSelectedNode, nodes, completeMission, playNodeCreated, playNodeInitialization, playMissionComplete, playXPGained, hasClickedNode, isCanvasLockedByModal],
 	)
 
 	return (
@@ -1099,6 +1112,19 @@ const handleChannelConfirm = useCallback(
 				</Box>
 			)}
 
+			{/* Bloquea interacción del canvas mientras haya modales abiertos */}
+			{isCanvasLockedByModal && (
+				<Box
+					sx={{
+						position: 'absolute',
+						inset: 0,
+						zIndex: 9,
+						backgroundColor: 'rgba(0, 0, 0, 0.25)',
+						pointerEvents: 'auto',
+					}}
+				/>
+			)}
+
 			<Typography
 				variant="caption"
 				sx={{
@@ -1447,8 +1473,13 @@ const handleChannelConfirm = useCallback(
 				defaultEdgeOptions={{ type: 'channelEdge' }}
 				connectionLineStyle={{ stroke: lightning.primary, strokeWidth: 2.2 }}
 				zoomOnDoubleClick={false}
+				zoomOnScroll={!isCanvasLockedByModal}
+				zoomOnPinch={!isCanvasLockedByModal}
 				selectNodesOnDrag={true}
-				panOnDrag={[1, 2]}
+				nodesDraggable={!isCanvasLockedByModal}
+				nodesConnectable={!isCanvasLockedByModal}
+				elementsSelectable={!isCanvasLockedByModal}
+				panOnDrag={isCanvasLockedByModal ? false : [1, 2]}
 				minZoom={0.5}
 				maxZoom={2}
 			>
