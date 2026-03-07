@@ -1,8 +1,10 @@
-import { Box, Divider, Stack, Typography, TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material'
+import { Box, Divider, Stack, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Modal, Button, IconButton } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
 import { border, background } from '../../../../theme/colors'
 import type { Node } from '@xyflow/react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useReactFlow } from '@xyflow/react'
+import { useMissionStore } from '../../shared/store/useMissionStore'
 
 interface NodeDetailsPanelProps {
   node: Node | null
@@ -10,13 +12,23 @@ interface NodeDetailsPanelProps {
 
 function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
   const { setNodes } = useReactFlow()
+  const { addXP, missionCounter } = useMissionStore()
   const [nombre, setNombre] = useState('')
   const [balance, setBalance] = useState(0)
   const [estado, setEstado] = useState<'activo' | 'inactivo'>('activo')
+  const [hasChangedNombre, setHasChangedNombre] = useState(false)
+  const [hasChangedBalance, setHasChangedBalance] = useState(false)
+  const [showNameGuideModal, setShowNameGuideModal] = useState(false)
+  const [showBalanceGuideModal, setShowBalanceGuideModal] = useState(false)
+  const [showAdvanceMissionModal, setShowAdvanceMissionModal] = useState(false)
+  const [hasShownAdvanceMissionModal, setHasShownAdvanceMissionModal] = useState(false)
+  const initialNombreRef = useRef('')
+  const initialBalanceRef = useRef(0)
 
   // Extract node data (safe to access with optional chaining)
   const nodeLabel = (node?.data?.label as string) || 'Unknown'
   const isPlaceholder = node?.data?.isPlaceholder as boolean | undefined
+  const isMission1XPActive = missionCounter === 0
 
   useEffect(() => {
     if (!node || isPlaceholder) return
@@ -33,6 +45,14 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
     setNombre(initialNombre)
     setBalance(initialBalance)
     setEstado(nodeData?.estado || 'activo')
+    setHasChangedNombre(false)
+    setHasChangedBalance(false)
+    setHasShownAdvanceMissionModal(false)
+    setShowAdvanceMissionModal(false)
+    setShowNameGuideModal(true)
+    setShowBalanceGuideModal(false)
+    initialNombreRef.current = initialNombre
+    initialBalanceRef.current = initialBalance
   }, [node?.id, nodeLabel, isPlaceholder])
 
   if (!node || isPlaceholder) {
@@ -65,9 +85,49 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
     updateNode({ nombre: newNombre })
   }
 
+  const confirmNombreChange = () => {
+    if (hasChangedNombre) return
+
+    const normalizedInitial = initialNombreRef.current.trim()
+    const normalizedNew = nombre.trim()
+    if (normalizedNew.length > 0 && normalizedNew !== normalizedInitial) {
+      if (isMission1XPActive) {
+        addXP(30)
+      }
+      setHasChangedNombre(true)
+      setShowNameGuideModal(false)
+      if (!hasChangedBalance) {
+        setShowBalanceGuideModal(true)
+      }
+    }
+  }
+
   const handleBalanceChange = (newBalance: number) => {
     setBalance(newBalance)
     updateNode({ balance: newBalance })
+  }
+
+  const confirmBalanceChange = () => {
+    if (hasChangedBalance) return
+
+    const newBalance = balance
+    if (!Number.isFinite(newBalance)) {
+      return
+    }
+
+    const hasRealChange = newBalance > 0 && newBalance !== initialBalanceRef.current
+    if (hasRealChange) {
+      if (isMission1XPActive) {
+        addXP(30)
+      }
+      setHasChangedBalance(true)
+      setShowBalanceGuideModal(false)
+
+      if (hasChangedNombre && !hasShownAdvanceMissionModal) {
+        setShowAdvanceMissionModal(true)
+        setHasShownAdvanceMissionModal(true)
+      }
+    }
   }
 
   // Formatear balance
@@ -107,10 +167,33 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
             label="Nombre"
             value={nombre}
             onChange={(e) => handleNombreChange(e.target.value)}
+            onBlur={confirmNombreChange}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                confirmNombreChange()
+              }
+            }}
             size="small"
             fullWidth
             variant="outlined"
             helperText=""
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                animation: !hasChangedNombre ? 'fieldBreath 1.8s ease-in-out infinite' : 'none',
+                '& fieldset': {
+                  borderColor: !hasChangedNombre ? border.strong : undefined,
+                  borderWidth: !hasChangedNombre ? 2 : 1,
+                },
+              },
+              '@keyframes fieldBreath': {
+                '0%, 100%': {
+                  boxShadow: '0 0 0 0 rgba(245, 158, 11, 0.12)',
+                },
+                '50%': {
+                  boxShadow: '0 0 0 6px rgba(245, 158, 11, 0.28)',
+                },
+              },
+            }}
           />
         </Box>
 
@@ -120,10 +203,33 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
             type="number"
             value={balance}
             onChange={(e) => handleBalanceChange(Number(e.target.value))}
+            onBlur={confirmBalanceChange}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                confirmBalanceChange()
+              }
+            }}
             size="small"
             fullWidth
             variant="outlined"
             helperText={`${formatBalance(balance)} satoshis`}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                animation: hasChangedNombre && !hasChangedBalance ? 'fieldBreath 1.8s ease-in-out infinite' : 'none',
+                '& fieldset': {
+                  borderColor: hasChangedNombre && !hasChangedBalance ? border.strong : undefined,
+                  borderWidth: hasChangedNombre && !hasChangedBalance ? 2 : 1,
+                },
+              },
+              '@keyframes fieldBreath': {
+                '0%, 100%': {
+                  boxShadow: '0 0 0 0 rgba(245, 158, 11, 0.12)',
+                },
+                '50%': {
+                  boxShadow: '0 0 0 6px rgba(245, 158, 11, 0.28)',
+                },
+              },
+            }}
           />
         </Box>
 
@@ -143,6 +249,160 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
           </Select>
         </FormControl>
       </Stack>
+
+      <Modal
+        open={showNameGuideModal && !hasChangedNombre}
+        onClose={() => setShowNameGuideModal(false)}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2,
+        }}
+      >
+        <Box
+          sx={{
+            position: 'relative',
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: 'center',
+            gap: 2,
+            maxWidth: { xs: '95%', md: 720 },
+            outline: 'none',
+          }}
+        >
+          <Box
+            component="img"
+            src="/bitcoin-derecha.png"
+            alt="Guia mision"
+            sx={{
+              width: { xs: 180, md: 240 },
+              height: 'auto',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 12px 30px rgba(0, 0, 0, 0.45))',
+            }}
+          />
+
+          <Box
+            sx={{
+              position: 'relative',
+              background: '#fff',
+              borderRadius: 3,
+              p: { xs: 2, md: 2.5 },
+              border: `3px solid ${border.strong}`,
+              boxShadow: '0 16px 40px rgba(0,0,0,0.35)',
+              maxWidth: 420,
+            }}
+          >
+            <IconButton
+              onClick={() => setShowNameGuideModal(false)}
+              sx={{ position: 'absolute', top: 6, right: 6 }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, pr: 4 }}>
+              Paso 1
+            </Typography>
+            <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+              Cambia el nombre del nodo para continuar la Mision 1.
+            </Typography>
+          </Box>
+        </Box>
+      </Modal>
+
+      <Modal
+        open={showBalanceGuideModal && hasChangedNombre && !hasChangedBalance}
+        onClose={() => setShowBalanceGuideModal(false)}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2,
+        }}
+      >
+        <Box
+          sx={{
+            position: 'relative',
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: 'center',
+            gap: 2,
+            maxWidth: { xs: '95%', md: 720 },
+            outline: 'none',
+          }}
+        >
+          <Box
+            component="img"
+            src="/bitcoin-derecha.png"
+            alt="Guia mision"
+            sx={{
+              width: { xs: 180, md: 240 },
+              height: 'auto',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 12px 30px rgba(0, 0, 0, 0.45))',
+            }}
+          />
+
+          <Box
+            sx={{
+              position: 'relative',
+              background: '#fff',
+              borderRadius: 3,
+              p: { xs: 2, md: 2.5 },
+              border: `3px solid ${border.strong}`,
+              boxShadow: '0 16px 40px rgba(0,0,0,0.35)',
+              maxWidth: 420,
+            }}
+          >
+            <IconButton
+              onClick={() => setShowBalanceGuideModal(false)}
+              sx={{ position: 'absolute', top: 6, right: 6 }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, pr: 4 }}>
+              Paso 2
+            </Typography>
+            <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+              Muy bien. Ahora cambia el balance en sats para terminar esta parte.
+            </Typography>
+          </Box>
+        </Box>
+      </Modal>
+
+      <Modal
+        open={showAdvanceMissionModal}
+        onClose={() => setShowAdvanceMissionModal(false)}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2,
+        }}
+      >
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: 520,
+            p: 3,
+            borderRadius: 2,
+            border: `2px solid ${border.strong}`,
+            backgroundColor: background.panel,
+            boxShadow: '0 20px 50px rgba(0,0,0,0.35)',
+            outline: 'none',
+          }}
+        >
+          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
+            Listo
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Ya completaste los pasos de la Mision 1. Puedes avanzar a la Mision 2.
+          </Typography>
+          <Button variant="contained" onClick={() => setShowAdvanceMissionModal(false)}>
+            Continuar
+          </Button>
+        </Box>
+      </Modal>
 
       <Divider sx={{ borderColor: border.divider }} />
 

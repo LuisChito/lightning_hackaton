@@ -165,8 +165,8 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
             🎯 Misión Activa: Configurar tu Nodo
           </Typography>
           <Typography variant="caption" sx={{ color: text.secondary, display: 'block' }}>
-            {!hasChangedNombre && '1. Cambia el nombre (+10 XP) ⚡'}
-            {hasChangedNombre && !hasChangedBalance && '2. Ajusta el balance (+15 XP) ⚡'}
+            {!hasChangedNombre && '1. Cambia el nombre (+30 XP) ⚡'}
+            {hasChangedNombre && !hasChangedBalance && '2. Ajusta el balance (+30 XP) ⚡'}
             {hasChangedNombre && hasChangedBalance && '✅ ¡Misión completada!'}
           </Typography>
         </Box>
@@ -195,7 +195,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
             variant="outlined"
             helperText={
               isConfigureMission && !hasChangedNombre 
-                ? '⚡ Cambia este nombre para ganar 10 XP' 
+                ? '⚡ Cambia este nombre para ganar 30 XP' 
                 : ''
             }
             sx={{
@@ -216,7 +216,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
           />
           {isConfigureMission && !hasChangedNombre && (
             <Chip
-              label="¡Edítame! +10 XP"
+              label="¡Edítame! +30 XP"
               size="small"
               sx={{
                 position: 'absolute',
@@ -252,7 +252,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
             variant="outlined"
             helperText={
               isConfigureMission && !hasChangedBalance 
-                ? `⚡ Cambia este balance para ganar 15 XP (actual: ${formatBalance(balance)} satoshis)` 
+                ? `⚡ Cambia este balance para ganar 30 XP (actual: ${formatBalance(balance)} satoshis)` 
                 : `${formatBalance(balance)} satoshis`
             }
             sx={{
@@ -273,7 +273,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
           />
           {isConfigureMission && !hasChangedBalance && (
             <Chip
-              label="¡Edítame! +15 XP"
+              label="¡Edítame! +30 XP"
               size="small"
               sx={{
                 position: 'absolute',
