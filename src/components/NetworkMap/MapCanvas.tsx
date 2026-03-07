@@ -161,7 +161,7 @@ function MapCanvasInner() {
 					textTransform: 'uppercase',
 				}}
 			>
-				Network Area (Click en espacio vacío para crear nodo)
+				Network Area
 			</Typography>
 
 			<ReactFlow

@@ -1,14 +1,32 @@
 import { Box, Button, Stack, Modal, TextField, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { background, lightning, text, border } from '../../theme/colors'
+import { loadGameProgress } from '../../utils/gameProgress'
 
 function WelcomePage() {
   const navigate = useNavigate()
   const [openModal, setOpenModal] = useState(false)
   const [playerName, setPlayerName] = useState('')
+  const [hasSavedSession, setHasSavedSession] = useState(false)
+
+  useEffect(() => {
+    const savedName = localStorage.getItem('playerName')?.trim() || ''
+    const savedProgress = loadGameProgress()
+    const canContinue = Boolean(savedName && savedProgress)
+
+    setHasSavedSession(canContinue)
+    if (savedName) {
+      setPlayerName(savedName)
+    }
+  }, [])
 
   const handleOpenModal = () => {
+    if (hasSavedSession) {
+      navigate('/game')
+      return
+    }
+
     setOpenModal(true)
   }
 
@@ -256,7 +274,7 @@ function WelcomePage() {
               },
             }}
           >
-            ▶ START
+            {hasSavedSession ? '▶ CONTINUAR' : '▶ START'}
           </Button>
         </Box>
 

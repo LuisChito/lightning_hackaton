@@ -52,7 +52,7 @@ function Header() {
 					<Stack direction="row" spacing={1.25} alignItems="center">
 						<Box
 							component={NavLink}
-							to="/"
+							to="/game"
 							sx={{
 								display: 'inline-flex',
 								alignItems: 'center',
