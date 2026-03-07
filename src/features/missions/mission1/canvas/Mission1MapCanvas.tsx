@@ -24,6 +24,7 @@ import { useNetworkStore } from '../store/useNetworkStore'
 import { useMissionStore } from '../../shared/store/useMissionStore'
 import { useGameSounds } from '../../../../hooks/useGameSounds'
 import NodeCreationAnimation from '../../../../components/HUD/NodeCreationAnimation'
+import ChannelModal from '../../../../components/Controls/ChannelModal'
 
 const nodeTypes: NodeTypes = {
 	networkNode: NodeItem,
@@ -225,6 +226,11 @@ function MapCanvasInner() {
 	const [showChannelEducation, setShowChannelEducation] = useState(false)
 	const [educationStep, setEducationStep] = useState(0)
 	
+	// Estado para el modal de creación de canal
+	const [showChannelModal, setShowChannelModal] = useState(false)
+	const [pendingConnection, setPendingConnection] = useState<Connection | null>(null)
+	const [modalSourceNode, setModalSourceNode] = useState<{ name: string; balance: number } | null>(null)
+	
 	// Estado para mostrar hint de click en el nodo
 	const [showNodeClickHint, setShowNodeClickHint] = useState(false)
 	const [firstNodeId, setFirstNodeId] = useState<string | null>(null)
@@ -268,31 +274,26 @@ function MapCanvasInner() {
 			}
 
 			const sourceBalance = Number((sourceNode.data as { balance?: number } | undefined)?.balance ?? 0)
-			const amountInput = window.prompt(
-				`¿De cuántos sats quieres crear el canal?\nBalance del nodo origen: ${sourceBalance} sats`,
-			)
+			const sourceName = (sourceNode.data as { label?: string } | undefined)?.label ?? 'Nodo'
+			
+			// Abrir modal en lugar de usar window.prompt
+			setModalSourceNode({ name: sourceName, balance: sourceBalance })
+			setPendingConnection(connection)
+			setShowChannelModal(true)
+		},
+		[nodes],
+	)
 
-			if (amountInput === null) {
-				return
-			}
-
-			const channelSats = Number.parseInt(amountInput, 10)
-			if (!Number.isFinite(channelSats) || channelSats <= 0) {
-				window.alert('Ingresa una cantidad válida de sats mayor que 0.')
-				return
-			}
-
-			if (channelSats > sourceBalance) {
-				window.alert(`Canal inválido: el canal no puede superar ${sourceBalance} sats del nodo origen.`)
-				return
-			}
+	const handleChannelConfirm = useCallback(
+		(channelSats: number) => {
+			if (!pendingConnection) return
 
 			setEdges((currentEdges) => {
 				const channelNumber = getNextChannelNumber(currentEdges)
 
 				return addEdge(
 					{
-						...connection,
+						...pendingConnection,
 						id: `channel-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
 						type: 'channelEdge',
 						data: { label: `canal${channelNumber}`, sats: channelSats },
@@ -304,8 +305,12 @@ function MapCanvasInner() {
 			if (currentMission?.id === 'create-destination-and-channel') {
 				completeMission('create-destination-and-channel')
 			}
+			
+			// Limpiar estados
+			setPendingConnection(null)
+			setModalSourceNode(null)
 		},
-		[nodes, setEdges, currentMission, completeMission],
+		[pendingConnection, setEdges, currentMission, completeMission],
 	)
 
 	const onNodeClick = useCallback(
@@ -428,6 +433,21 @@ function MapCanvasInner() {
 				open={showNodeCreationAnimation}
 				onComplete={() => setShowNodeCreationAnimation(false)}
 			/>
+
+			{/* Modal para creación de canal */}
+			{modalSourceNode && (
+				<ChannelModal
+					open={showChannelModal}
+					onClose={() => {
+						setShowChannelModal(false)
+						setPendingConnection(null)
+						setModalSourceNode(null)
+					}}
+					onConfirm={handleChannelConfirm}
+					sourceNodeName={modalSourceNode.name}
+					sourceBalance={modalSourceNode.balance}
+				/>
+			)}
 
 			{/* Secuencia educativa de canales cuando tiene 2 nodos */}
 			{showChannelEducation && (
