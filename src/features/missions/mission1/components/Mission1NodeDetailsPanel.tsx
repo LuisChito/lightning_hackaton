@@ -535,7 +535,6 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
         <InvoiceTab 
           nodeRole={nodeRole}
           channelCapacity={channelInfo?.capacity || 0}
-          nodeId={node.id}
           isMission3Active={xp >= 200}
         />
       )}

@@ -9,16 +9,37 @@ const API_URL = import.meta.env.VITE_API_BASE
 
 interface CreateInvoiceProps {
   maxAmount?: number
-  onInvoiceCreated?: (paymentRequest: string) => void
+  onInvoiceHashCopied?: () => void
 }
 
-function CreateInvoice({ maxAmount, onInvoiceCreated }: CreateInvoiceProps) {
+function CreateInvoice({ maxAmount, onInvoiceHashCopied }: CreateInvoiceProps) {
   const [amountSats, setAmountSats] = useState('')
   const [memo, setMemo] = useState('')
   const [invoice, setInvoice] = useState<{ payment_request: string; qr_base64: string; amount_sats: number; memo: string } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [validationError, setValidationError] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  const notifyHashCopied = () => {
+    if (!copied) {
+      onInvoiceHashCopied?.()
+    }
+    setCopied(true)
+  }
+
+  const handleCopyHash = async () => {
+    if (!invoice?.payment_request) {
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(invoice.payment_request)
+      notifyHashCopied()
+    } catch {
+      // Ignore clipboard permission failures and keep manual copy available.
+    }
+  }
 
   const handleAmountChange = (value: string) => {
     setAmountSats(value)
@@ -53,7 +74,7 @@ function CreateInvoice({ maxAmount, onInvoiceCreated }: CreateInvoiceProps) {
       if (!res.ok) throw new Error((await res.json()).detail || 'Error al crear invoice')
       const createdInvoice = await res.json()
       setInvoice(createdInvoice)
-      onInvoiceCreated?.(createdInvoice.payment_request)
+      setCopied(false)
     } catch (e: any) {
       setError(e.message)
     } finally {
@@ -67,6 +88,7 @@ function CreateInvoice({ maxAmount, onInvoiceCreated }: CreateInvoiceProps) {
     setMemo('')
     setError('')
     setValidationError('')
+    setCopied(false)
   }
 
   if (invoice) {
@@ -90,10 +112,29 @@ function CreateInvoice({ maxAmount, onInvoiceCreated }: CreateInvoiceProps) {
           <Typography variant="caption" sx={{ color: text.secondary, fontWeight: 600, display: 'block', mb: 0.5 }}>
             Payment Request
           </Typography>
-          <Typography variant="caption" sx={{ wordBreak: 'break-all', fontFamily: 'monospace', fontSize: '0.7rem' }}>
+          <Typography
+            variant="caption"
+            onCopy={notifyHashCopied}
+            sx={{ wordBreak: 'break-all', fontFamily: 'monospace', fontSize: '0.7rem' }}
+          >
             {invoice.payment_request}
           </Typography>
         </Box>
+
+        <Button
+          variant="contained"
+          size="small"
+          fullWidth
+          onClick={handleCopyHash}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 700,
+            background: `linear-gradient(180deg, ${lightning.primary} 0%, ${lightning.dark} 100%)`,
+            '&:hover': { background: `linear-gradient(180deg, ${lightning.light} 0%, ${lightning.primary} 100%)` },
+          }}
+        >
+          {copied ? 'Hash copiado' : 'Copiar hash'}
+        </Button>
 
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="caption" color="text.secondary">Monto</Typography>

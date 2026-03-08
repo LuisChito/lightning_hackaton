@@ -5,13 +5,10 @@ interface Mission3UiState {
   showSelectDestinationModal: boolean
   showInvoiceExplanationModal: boolean
   showSourceNodeAutofillModal: boolean
-  invoiceAutofillRequest: string | null
-  invoiceAutofillSourceNodeId: string | null
-  invoiceAutofillVersion: number
   startFlow: () => void
   continueToSelectDestination: () => void
   onDestinationSelected: () => void
-  startInvoiceAutofillFlow: (paymentRequest: string, sourceNodeId: string) => void
+  onInvoiceHashCopied: () => void
   closeSourceNodeAutofillModal: () => void
   closeAll: () => void
 }
@@ -21,9 +18,6 @@ export const useMission3Store = create<Mission3UiState>((set) => ({
   showSelectDestinationModal: false,
   showInvoiceExplanationModal: false,
   showSourceNodeAutofillModal: false,
-  invoiceAutofillRequest: null,
-  invoiceAutofillSourceNodeId: null,
-  invoiceAutofillVersion: 0,
 
   startFlow: () =>
     set({
@@ -49,16 +43,13 @@ export const useMission3Store = create<Mission3UiState>((set) => ({
       showSourceNodeAutofillModal: false,
     }),
 
-  startInvoiceAutofillFlow: (paymentRequest: string, sourceNodeId: string) =>
-    set((state) => ({
+  onInvoiceHashCopied: () =>
+    set({
       showLevel3ReachedModal: false,
       showSelectDestinationModal: false,
       showInvoiceExplanationModal: false,
       showSourceNodeAutofillModal: true,
-      invoiceAutofillRequest: paymentRequest,
-      invoiceAutofillSourceNodeId: sourceNodeId,
-      invoiceAutofillVersion: state.invoiceAutofillVersion + 1,
-    })),
+    }),
 
   closeSourceNodeAutofillModal: () =>
     set({
@@ -71,7 +62,5 @@ export const useMission3Store = create<Mission3UiState>((set) => ({
       showSelectDestinationModal: false,
       showInvoiceExplanationModal: false,
       showSourceNodeAutofillModal: false,
-      invoiceAutofillRequest: null,
-      invoiceAutofillSourceNodeId: null,
     }),
 }))

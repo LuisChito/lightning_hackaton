@@ -456,9 +456,6 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
       <InvoiceTab 
         nodeRole={nodeRole}
         channelCapacity={channelInfo?.capacity || 0}
-        nodeId={node.id}
-        sourceNodeId={channelInfo?.sourceNodeId}
-        targetNodeId={channelInfo?.targetNodeId}
         isMission3Active={xp >= 200}
         onPaymentSuccess={handlePaymentSuccess}
       />
