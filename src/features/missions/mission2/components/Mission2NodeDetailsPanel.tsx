@@ -66,16 +66,20 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
       return
     }
     
-    // Determinar el rol del nodo
-    const isSource = nodeChannels.some(edge => edge.source === node.id)
-    const isTarget = nodeChannels.some(edge => edge.target === node.id)
-    
-    if (isSource && isTarget) {
+    // En misión 3, cualquier nodo con canal activo puede crear y pagar invoices.
+    if (xp >= 200) {
       setNodeRole('both')
-    } else if (isSource) {
-      setNodeRole('source')
-    } else if (isTarget) {
-      setNodeRole('target')
+    } else {
+      const isSource = nodeChannels.some(edge => edge.source === node.id)
+      const isTarget = nodeChannels.some(edge => edge.target === node.id)
+
+      if (isSource && isTarget) {
+        setNodeRole('both')
+      } else if (isSource) {
+        setNodeRole('source')
+      } else if (isTarget) {
+        setNodeRole('target')
+      }
     }
     
     // Obtener info del canal (tomamos el primer canal por ahora)
@@ -87,7 +91,7 @@ function NodeDetailsPanel({ node }: NodeDetailsPanelProps) {
         targetNodeId: channel.target,
       })
     }
-  }, [node?.id, getEdges])
+  }, [node?.id, getEdges, xp])
 
   // Initialize values when node changes
   useEffect(() => {

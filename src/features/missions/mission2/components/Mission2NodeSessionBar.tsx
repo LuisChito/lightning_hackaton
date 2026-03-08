@@ -12,7 +12,7 @@ function NodeSessionBar() {
         backgroundColor: background.panel,
       }}
     >
-      <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1} flexWrap="wrap">
+      <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
         <Stack direction="row" spacing={1} alignItems="center">
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
           Node Session
@@ -28,38 +28,6 @@ function NodeSessionBar() {
               backgroundColor: status.successBg,
             }}
           />
-        </Stack>
-
-        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 'fit-content' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 200 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-              Progreso
-            </Typography>
-            <Box
-              sx={{
-          width: 120,
-          height: 8,
-          borderRadius: 4,
-          backgroundColor: background.secondary,
-          border: `1px solid ${border.subtle}`,
-          overflow: 'hidden',
-          position: 'relative',
-              }}
-            >
-              <Box
-          sx={{
-            height: '100%',
-            width: `${((localStorage.getItem('xp') ? parseInt(localStorage.getItem('xp') as string) : 0) % 100)}%`,
-            backgroundColor: status.success,
-            transition: 'width 0.3s ease',
-            borderRadius: 4,
-          }}
-              />
-            </Box>
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, minWidth: '30px' }}>
-              {((localStorage.getItem('xp') ? parseInt(localStorage.getItem('xp') as string) : 0) % 100)}%
-            </Typography>
-          </Box>
         </Stack>
       </Stack>
     </Box>
